@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Rellotge Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#08090a;
+    --bg-2:#0f1113;
+    --case-1:#2b2c2e;
+    --case-2:#131315;
+    --case-shadow:#000000;
+    --metal-1:#5a5c5f;
+    --metal-2:#37383a;
+    --metal-hi:#8a8c8f;
+    --lcd-bg-1:#93a07c;
+    --lcd-bg-2:#7c8a67;
+    --lcd-ink:#232c19;
+    --lcd-ghost:rgba(35,44,25,0.16);
+    --accent:#b23a2c;
+    --accent-light:#d24f3d;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, #1a1c1f 0%, var(--bg-2) 45%, var(--bg-1) 100%);
+    color:#cfd2d6;
+    font-family:var(--mono);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(20px, 4vh, 40px);
+    padding:clamp(16px, 4vw, 40px);
+  }
+
+  @media (orientation:landscape) and (min-width:680px){
+    .page{
+      flex-direction:row;
+      align-items:center;
+      gap:clamp(24px, 5vw, 64px);
+    }
+  }
+
+  /* ============ WATCH CASE ============ */
+  :root{
+    --panel-width: clamp(300px, 48vw, 460px);
+  }
+
+  .watch{
+    position:relative;
+    width:var(--panel-width);
+    flex-shrink:0;
+  }
+
+  .watch-case{
+    position:relative;
+    background:linear-gradient(155deg, var(--case-1) 0%, var(--case-2) 60%, #0a0a0b 100%);
+    border-radius:16%;
+    padding:clamp(14px,3vw,20px);
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,.7),
+      0 2px 0 rgba(255,255,255,.04) inset,
+      0 -6px 14px rgba(0,0,0,.5) inset;
+  }
+
+  .bezel{
+    position:relative;
+    border-radius:13%;
+    padding:clamp(9px,1.8vw,13px);
+    background:
+      conic-gradient(from 220deg,
+        var(--metal-hi), var(--metal-1) 15%, var(--metal-2) 35%,
+        var(--metal-1) 55%, var(--metal-hi) 70%, var(--metal-2) 88%, var(--metal-hi));
+    box-shadow:
+      0 2px 3px rgba(0,0,0,.6) inset,
+      0 -2px 3px rgba(255,255,255,.15) inset;
+  }
+
+  .bezel-ticks{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+  .lcd-screen{
+    position:relative;
+    border-radius:8%;
+    background:
+      linear-gradient(160deg, var(--lcd-bg-1) 0%, var(--lcd-bg-2) 100%);
+    box-shadow:
+      0 3px 8px rgba(0,0,0,.55) inset,
+      0 -1px 0 rgba(255,255,255,.25) inset;
+    padding:clamp(12px,2.6vw,18px) clamp(10px,2.4vw,16px) clamp(14px,2.8vw,18px);
+    overflow:hidden;
+  }
+
+  .lcd-screen::before{
+    content:"";
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(
+      to bottom, rgba(0,0,0,.05) 0px, rgba(0,0,0,.05) 1px,
+      transparent 1px, transparent 3px);
+    mix-blend-mode:multiply;
+    pointer-events:none;
+  }
+
+  .lcd-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:var(--lcd-ink);
+    font-weight:700;
+    font-size:clamp(10px,1.7vw,13px);
+    letter-spacing:.12em;
+    margin-bottom:clamp(4px,1vw,8px);
+  }
+  .day-badge{ display:flex; align-items:center; gap:6px; }
+  .live-dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--accent);
+    animation:blink 2s steps(1) infinite;
+  }
+  @keyframes blink{ 50%{ opacity:.15; } }
+
+  .top-right{ display:flex; align-items:center; gap:8px; }
+
+  .rain-icon{
+    width:clamp(12px,2vw,15px);
+    height:clamp(12px,2vw,15px);
+    color:var(--lcd-ink);
+    display:none;
+  }
+  .rain-icon.visible{
+    display:block;
+    animation:blink 2s steps(1) infinite;
+  }
+
+  .signal-bars{ display:flex; align-items:flex-end; gap:2px; height:10px; }
+  .signal-bars span{
+    display:block; width:3px; background:var(--lcd-ink); opacity:.75;
+  }
+  .signal-bars span:nth-child(1){ height:40%; }
+  .signal-bars span:nth-child(2){ height:65%; }
+  .signal-bars span:nth-child(3){ height:85%; }
+  .signal-bars span:nth-child(4){ height:100%; }
+
+  .seven-seg-time{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(1px,.4vw,3px);
+    margin:clamp(4px,1.2vw,10px) 0;
+  }
+  .digit{ width:clamp(20px,5.4vw,38px); height:auto; display:block; }
+  .digit .seg.on{ fill:var(--lcd-ink); }
+  .digit .seg.off{ fill:var(--lcd-ghost); }
+  .colon{ width:clamp(9px,2.3vw,16px); height:auto; display:block; }
+  .colon.blink{ animation:blink 2s steps(1) infinite; }
+  .colon .seg.on{ fill:var(--lcd-ink); }
+
+  .lcd-date-row{
+    text-align:center;
+    color:var(--lcd-ink);
+    font-weight:700;
+    font-size:clamp(11px,2vw,15px);
+    letter-spacing:.1em;
+    margin-bottom:clamp(8px,1.6vw,12px);
+  }
+
+  .modules{
+    display:flex;
+    gap:clamp(2px,.7vw,6px);
+    border-top:2px solid rgba(35,44,25,.25);
+    padding-top:clamp(8px,1.6vw,12px);
+  }
+  .module{
+    flex:1;
+    min-width:0;
+    text-align:center;
+    color:var(--lcd-ink);
+  }
+  .module-label{
+    display:block;
+    font-size:clamp(6px,1vw,8px);
+    font-weight:700;
+    letter-spacing:.1em;
+    opacity:.7;
+    margin-bottom:2px;
+  }
+  .module-value{
+    display:block;
+    font-size:clamp(9.5px,1.7vw,13px);
+    font-weight:800;
+    letter-spacing:.01em;
+    white-space:nowrap;
+  }
+  .module-divider{
+    width:2px;
+    background:rgba(35,44,25,.25);
+  }
+
+  .location-label{
+    text-align:center;
+    margin-top:clamp(12px,2.4vw,18px);
+    font-size:clamp(16px,3vw,23px);
+    font-weight:800;
+    letter-spacing:.14em;
+    color:#e7e9ec;
+    text-transform:uppercase;
+  }
+
+  /* ============ CALENDAR ============ */
+  .calendar-wrap{
+    width:var(--panel-width);
+    flex-shrink:0;
+  }
+
+  .cal-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    color:var(--lcd-ink);
+    margin-bottom:clamp(10px,2vw,16px);
+  }
+  .cal-label{
+    font-size:clamp(9px,1.5vw,11px);
+    font-weight:800;
+    letter-spacing:.2em;
+    opacity:.65;
+  }
+  .cal-month{
+    font-size:clamp(13px,2.3vw,17px);
+    font-weight:800;
+    letter-spacing:.08em;
+  }
+
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:clamp(3px,.9vw,7px);
+  }
+  .cal-dayname{
+    text-align:center;
+    font-size:clamp(10px,1.7vw,13px);
+    font-weight:700;
+    letter-spacing:.06em;
+    color:var(--lcd-ink);
+    opacity:.55;
+    padding-bottom:6px;
+  }
+  .cal-cell{
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(15px,2.6vw,20px);
+    font-weight:700;
+    color:var(--lcd-ink);
+    border-radius:6px;
+  }
+  .cal-cell.empty{ visibility:hidden; }
+  .cal-cell.today{
+    background:var(--accent);
+    color:var(--lcd-bg-1);
+    box-shadow:0 0 0 2px rgba(0,0,0,.15) inset;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="watch">
+    <div class="watch-case">
+      <div class="bezel">
+        <div class="lcd-screen">
+          <div class="lcd-top">
+            <span class="day-badge"><span class="live-dot"></span><span id="dayName">---</span></span>
+            <span class="top-right">
+              <svg class="rain-icon" id="rainIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12a8 8 0 0 1 16 0Z"/>
+                <path d="M12 12v8a2 2 0 0 1-4 0"/>
+                <path d="M12 4v2"/>
+              </svg>
+              <span class="signal-bars"><span></span><span></span><span></span><span></span></span>
+            </span>
+          </div>
+
+          <div class="seven-seg-time" id="timeDisplay"></div>
+
+          <div class="lcd-date-row" id="dateDisplay">-- --- ----</div>
+
+          <div class="modules">
+            <div class="module">
+              <span class="module-label">TEMP</span>
+              <span class="module-value" id="tempValue">-- °C</span>
+            </div>
+            <div class="module-divider"></div>
+            <div class="module">
+              <span class="module-label">HUMIT</span>
+              <span class="module-value" id="humidityValue">-- %</span>
+            </div>
+            <div class="module-divider"></div>
+            <div class="module">
+              <span class="module-label">SENS</span>
+              <span class="module-value" id="feelsValue">-- °C</span>
+            </div>
+            <div class="module-divider"></div>
+            <div class="module">
+              <span class="module-label">ALT</span>
+              <span class="module-value" id="altValue">-- m</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="location-label" id="placeValue">--</div>
+  </div>
+
+  <div class="calendar-wrap">
+    <div class="watch-case">
+      <div class="bezel">
+        <div class="lcd-screen">
+          <div class="cal-header">
+            <span class="cal-label">CAL</span>
+            <span class="cal-month" id="calMonth">-- ----</span>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===================== SEVEN SEGMENT DIGITS ===================== */
+const SEGMENTS = {
+  '0':['a','b','c','d','e','f'],
+  '1':['b','c'],
+  '2':['a','b','g','e','d'],
+  '3':['a','b','g','c','d'],
+  '4':['f','g','b','c'],
+  '5':['a','f','g','c','d'],
+  '6':['a','f','g','e','c','d'],
+  '7':['a','b','c'],
+  '8':['a','b','c','d','e','f','g'],
+  '9':['a','b','c','d','f','g'],
+  '-':['g'],
+  ' ':[]
+};
+
+/* Cada segment és un hexàgon amb els extrems tallats a 45°, perquè els
+   pals verticals i horitzontals encaixin correctament als cantons
+   (com en un display LCD/LED real) i cap número quedi més curt. */
+const SEG_POLYGONS = {
+  a:'3,7 7,3 33,3 37,7 33,11 7,11',
+  g:'3,35 7,31 33,31 37,35 33,39 7,39',
+  d:'3,63 7,59 33,59 37,63 33,67 7,67',
+  f:'7,3 11,7 11,31 7,35 3,31 3,7',
+  b:'33,3 37,7 37,31 33,35 29,31 29,7',
+  e:'7,35 11,39 11,63 7,67 3,63 3,39',
+  c:'33,35 37,39 37,63 33,67 29,63 29,39'
+};
+
+function digitSVG(char){
+  const segs = SEGMENTS[char] !== undefined ? SEGMENTS[char] : [];
+  let inner = '';
+  for(const key of ['a','b','c','d','e','f','g']){
+    const cls = segs.includes(key) ? 'seg on' : 'seg off';
+    inner += `<polygon class="${cls}" points="${SEG_POLYGONS[key]}"/>`;
+  }
+  return `<svg class="digit" viewBox="0 0 40 70" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+}
+
+function colonSVG(){
+  return `<svg class="colon blink" viewBox="0 0 16 70" xmlns="http://www.w3.org/2000/svg">
+    <rect class="seg on" x="4" y="21" width="8" height="8" rx="1"/>
+    <rect class="seg on" x="4" y="43" width="8" height="8" rx="1"/>
+  </svg>`;
+}
+
+function renderTime(){
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const parts = [...h, 'colon', ...m, 'colon', ...s];
+  document.getElementById('timeDisplay').innerHTML = parts
+    .map(c => c === 'colon' ? colonSVG() : digitSVG(c))
+    .join('');
+}
+
+/* ===================== DATA / DATE ===================== */
+const DIA_NOMS = ['DIUMENGE','DILLUNS','DIMARTS','DIMECRES','DIJOUS','DIVENDRES','DISSABTE'];
+const DIA_CURT = ['DG','DL','DT','DC','DJ','DV','DS'];
+const MES_NOMS = ['GENER','FEBRER','MARÇ','ABRIL','MAIG','JUNY','JULIOL','AGOST','SETEMBRE','OCTUBRE','NOVEMBRE','DESEMBRE'];
+
+function renderDate(){
+  const now = new Date();
+  document.getElementById('dayName').textContent = DIA_CURT[now.getDay()];
+  const dd = String(now.getDate()).padStart(2,'0');
+  const mm = MES_NOMS[now.getMonth()].slice(0,3);
+  document.getElementById('dateDisplay').textContent = `${dd} ${mm} ${now.getFullYear()}`;
+}
+
+function buildCalendar(){
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  document.getElementById('calMonth').textContent = `${MES_NOMS[month]} ${year}`;
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  DIA_CURT.slice(1).concat(DIA_CURT[0]).forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-dayname';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDate = new Date(year, month, 1);
+  const startOffset = (firstDate.getDay() + 6) % 7; // Monday = 0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = now.getDate();
+
+  for(let i=0; i<startOffset; i++){
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const el = document.createElement('div');
+    el.className = 'cal-cell' + (d === today ? ' today' : '');
+    el.textContent = d;
+    grid.appendChild(el);
+  }
+}
+
+/* ===================== TEMPERATURA / HUMITAT / SENSACIÓ / ALÇADA / PLUJA ===================== */
+const FALLBACK_COORDS = { lat: 41.4500, lon: 2.2474 }; // Badalona
+const RAIN_THRESHOLD = 50; // % de probabilitat a partir del qual es considera "pluja imminent"
+
+async function fetchPlaceName(lat, lon){
+  try{
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ca`);
+    const data = await res.json();
+    const place = data.city || data.locality || data.principalSubdivision || '';
+    document.getElementById('placeValue').textContent = place || 'UBICACIÓ DESCONEGUDA';
+  }catch(err){
+    document.getElementById('placeValue').textContent = '';
+  }
+}
+
+function updateRainIcon(weather){
+  const icon = document.getElementById('rainIcon');
+  try{
+    const idx = weather.hourly.time.indexOf(weather.current.time);
+    const window = idx !== -1
+      ? weather.hourly.precipitation_probability.slice(idx, idx + 3)
+      : [];
+    const maxProb = window.length ? Math.max(...window) : 0;
+    icon.classList.toggle('visible', maxProb >= RAIN_THRESHOLD);
+  }catch(err){
+    icon.classList.remove('visible');
+  }
+}
+
+async function fetchTempAlt(lat, lon){
+  fetchPlaceName(lat, lon);
+
+  try{
+    const [weatherRes, elevRes] = await Promise.all([
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature&hourly=precipitation_probability&forecast_days=1`),
+      fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`)
+    ]);
+    const weather = await weatherRes.json();
+    const elev = await elevRes.json();
+
+    if(weather && weather.current){
+      const t = Math.round(weather.current.temperature_2m);
+      document.getElementById('tempValue').textContent = `${t}°C`;
+      const h = Math.round(weather.current.relative_humidity_2m);
+      document.getElementById('humidityValue').textContent = `${h}%`;
+      const f = Math.round(weather.current.apparent_temperature);
+      document.getElementById('feelsValue').textContent = `${f}°C`;
+    }
+    if(weather && weather.hourly){
+      updateRainIcon(weather);
+    }
+    if(elev && elev.elevation && elev.elevation.length){
+      const a = Math.round(elev.elevation[0]);
+      document.getElementById('altValue').textContent = `${a} m`;
+    }
+  }catch(err){
+    document.getElementById('tempValue').textContent = 'N/D';
+    document.getElementById('altValue').textContent = 'N/D';
+    document.getElementById('humidityValue').textContent = 'N/D';
+    document.getElementById('feelsValue').textContent = 'N/D';
+  }
+}
+
+function initLocationData(){
+  if('geolocation' in navigator){
+    navigator.geolocation.getCurrentPosition(
+      pos => fetchTempAlt(pos.coords.latitude, pos.coords.longitude),
+      () => fetchTempAlt(FALLBACK_COORDS.lat, FALLBACK_COORDS.lon),
+      { timeout: 6000 }
+    );
+  } else {
+    fetchTempAlt(FALLBACK_COORDS.lat, FALLBACK_COORDS.lon);
+  }
+}
+
+/* ===================== INIT ===================== */
+renderTime();
+renderDate();
+buildCalendar();
+initLocationData();
+
+setInterval(renderTime, 1000);
+setInterval(() => {
+  renderDate();
+  buildCalendar();
+}, 60 * 1000);
+setInterval(initLocationData, 10 * 60 * 1000);
+</script>
+
+</body>
+</html>
