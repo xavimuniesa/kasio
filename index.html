@@ -346,6 +346,7 @@
     padding-bottom:6px;
   }
   .cal-cell{
+    position:relative;
     aspect-ratio:1;
     display:flex;
     align-items:center;
@@ -356,10 +357,89 @@
     border-radius:6px;
   }
   .cal-cell.empty{ visibility:hidden; }
+
+  /* Caps de setmana: mateixa tinta, en un to més suau de l'accent
+     — coherent amb qualsevol dels temes, sense competir amb "avui". */
+  .cal-cell.weekend{
+    color:var(--accent-light);
+    opacity:.85;
+  }
+
+  /* Festius: tinta d'accent + puntet, i cursor per indicar que es pot tocar. */
+  .cal-cell.holiday{
+    color:var(--accent);
+    font-weight:800;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .cal-cell.holiday.weekend{ color:var(--accent); }
+  .cal-cell.holiday::after{
+    content:"";
+    position:absolute;
+    bottom:12%;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--accent);
+  }
+
   .cal-cell.today{
     background:var(--accent);
     color:var(--lcd-bg-1);
     box-shadow:0 0 0 2px rgba(0,0,0,.15) inset;
+  }
+  /* Si avui és també festiu, el puntet es dibuixa en positiu sobre el fons ple. */
+  .cal-cell.today.holiday::after{
+    background:var(--lcd-bg-1);
+  }
+
+  /* Finestreta emergent amb el nom de la festa */
+  .holiday-popup{
+    position:absolute;
+    z-index:5;
+    max-width:min(220px, 80%);
+    padding:8px 12px;
+    border-radius:8px;
+    background:linear-gradient(160deg, var(--lcd-bg-1) 0%, var(--lcd-bg-2) 100%);
+    border:1.5px solid var(--accent);
+    box-shadow:0 10px 22px -8px rgba(0,0,0,.55);
+    color:var(--lcd-ink);
+    font-family:var(--mono);
+    font-size:clamp(10px,1.7vw,12px);
+    font-weight:700;
+    letter-spacing:.03em;
+    text-align:center;
+    line-height:1.35;
+    text-transform:none;
+    opacity:0;
+    transform:translateY(4px) scale(.96);
+    pointer-events:none;
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .holiday-popup.visible{
+    opacity:1;
+    transform:translateY(0) scale(1);
+    pointer-events:auto;
+  }
+  .holiday-popup::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:-6px;
+    width:11px;
+    height:11px;
+    background:var(--lcd-bg-2);
+    border-right:1.5px solid var(--accent);
+    border-bottom:1.5px solid var(--accent);
+    transform:translateX(-50%) rotate(45deg);
+  }
+  .holiday-popup.arrow-top::after{
+    bottom:auto;
+    top:-6px;
+    border-right:none;
+    border-bottom:none;
+    border-left:1.5px solid var(--accent);
+    border-top:1.5px solid var(--accent);
   }
 </style>
 </head>
@@ -429,6 +509,7 @@
             <span class="cal-month" id="calMonth">-- ----</span>
           </div>
           <div class="cal-grid" id="calGrid"></div>
+          <div class="holiday-popup" id="holidayPopup" role="status" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -499,6 +580,61 @@ const DIA_NOMS = ['DIUMENGE','DILLUNS','DIMARTS','DIMECRES','DIJOUS','DIVENDRES'
 const DIA_CURT = ['DG','DL','DT','DC','DJ','DV','DS'];
 const MES_NOMS = ['GENER','FEBRER','MARÇ','ABRIL','MAIG','JUNY','JULIOL','AGOST','SETEMBRE','OCTUBRE','NOVEMBRE','DESEMBRE'];
 
+/* ===================== FESTIUS OFICIALS (Barcelona) =====================
+   Font: calendari laboral de la Generalitat de Catalunya + festes locals
+   fixades per l'Ajuntament de Barcelona. Els festius estatals i catalans
+   (Cap d'Any, Reis, Setmana Santa, 1 de Maig, Sant Joan, Assumpció, Diada,
+   Festa Nacional d'Espanya, Tots Sants, Constitució, Immaculada, Nadal i
+   Sant Esteve) es mantenen any rere any llevat de canvi legal; els DOS
+   festius LOCALS de Barcelona (p. ex. Pasqua Granada i la Mercè) els fixa
+   l'Ajuntament cada tardor per a l'any següent, així que aquesta taula
+   s'ha de repassar/actualitzar un cop l'any (idealment cap a la tardor,
+   quan es publiquen els del proper any). Clau: "MM-DD".
+   Fonts consultades (setembre 2026): ajuntament.barcelona.cat/calendarifestius,
+   beteve.cat i calendarioslaborales.com. */
+const FESTIUS = {
+  2026: {
+    '01-01': "Cap d'Any",
+    '01-06': 'Reis',
+    '04-03': 'Divendres Sant',
+    '04-06': 'Dilluns de Pasqua Florida',
+    '05-01': 'Festa del Treball',
+    '05-25': 'Pasqua Granada (festa local)',
+    '06-24': 'Sant Joan',
+    '08-15': 'Assumpció',
+    '09-11': 'Diada Nacional de Catalunya',
+    '09-24': 'La Mercè (festa local)',
+    '10-12': "Festa Nacional d'Espanya",
+    '11-01': 'Tots Sants',
+    '12-06': 'Dia de la Constitució',
+    '12-08': 'La Immaculada',
+    '12-25': 'Nadal',
+    '12-26': 'Sant Esteve'
+  },
+  2027: {
+    '01-01': "Cap d'Any",
+    '01-06': 'Reis',
+    '03-26': 'Divendres Sant',
+    '03-29': 'Dilluns de Pasqua Florida',
+    '05-01': 'Festa del Treball',
+    '06-24': 'Sant Joan',
+    '08-15': 'Assumpció',
+    '09-11': 'Diada Nacional de Catalunya',
+    '10-12': "Festa Nacional d'Espanya",
+    '11-01': 'Tots Sants',
+    '12-06': 'Dia de la Constitució',
+    '12-08': 'La Immaculada',
+    '12-25': 'Nadal',
+    '12-26': 'Sant Esteve'
+    // Els 2 festius locals de Barcelona per al 2027 encara no estaven
+    // publicats a la font oficial en el moment de crear aquesta taula.
+  }
+};
+
+function getFestius(year){
+  return FESTIUS[year] || {};
+}
+
 function renderDate(){
   const now = new Date();
   document.getElementById('dayName').textContent = DIA_CURT[now.getDay()];
@@ -506,6 +642,8 @@ function renderDate(){
   const mm = MES_NOMS[now.getMonth()].slice(0,3);
   document.getElementById('dateDisplay').textContent = `${dd} ${mm} ${now.getFullYear()}`;
 }
+
+let openHolidayKey = null; // "MM-DD" de la festa amb la finestreta oberta (si n'hi ha)
 
 function buildCalendar(){
   const now = new Date();
@@ -515,6 +653,8 @@ function buildCalendar(){
 
   const grid = document.getElementById('calGrid');
   grid.innerHTML = '';
+  const previousOpenKey = openHolidayKey;
+  hideHolidayPopup();
 
   DIA_CURT.slice(1).concat(DIA_CURT[0]).forEach(d => {
     const el = document.createElement('div');
@@ -527,6 +667,8 @@ function buildCalendar(){
   const startOffset = (firstDate.getDay() + 6) % 7; // Monday = 0
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = now.getDate();
+  const festius = getFestius(year);
+  let cellToReopen = null;
 
   for(let i=0; i<startOffset; i++){
     const el = document.createElement('div');
@@ -534,10 +676,81 @@ function buildCalendar(){
     grid.appendChild(el);
   }
   for(let d=1; d<=daysInMonth; d++){
+    const dow = new Date(year, month, d).getDay(); // 0=diumenge, 6=dissabte
+    const key = `${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const holidayName = festius[key];
+
     const el = document.createElement('div');
-    el.className = 'cal-cell' + (d === today ? ' today' : '');
+    let cls = 'cal-cell';
+    if(d === today) cls += ' today';
+    if(dow === 0 || dow === 6) cls += ' weekend';
+    if(holidayName) cls += ' holiday';
+    el.className = cls;
     el.textContent = d;
+
+    if(holidayName){
+      el.dataset.holidayKey = key;
+      el.dataset.holidayName = holidayName;
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', `${d} ${MES_NOMS[month]}: ${holidayName}`);
+      el.addEventListener('click', (e) => {
+        e.stopPropagation(); // no ha de disparar el canvi de tema en tocar la pantalla
+        toggleHolidayPopup(el, holidayName, key);
+      });
+      if(key === previousOpenKey) cellToReopen = el;
+    }
+
     grid.appendChild(el);
+  }
+
+  if(cellToReopen){
+    showHolidayPopup(cellToReopen, cellToReopen.dataset.holidayName, cellToReopen.dataset.holidayKey);
+  }
+}
+
+function showHolidayPopup(cell, name, key){
+  const popup = document.getElementById('holidayPopup');
+  const screen = cell.closest('.lcd-screen');
+  if(!popup || !screen) return;
+
+  popup.textContent = name;
+  popup.classList.add('visible');
+  openHolidayKey = key;
+
+  // Posicionem la finestreta relativa a la pantalla LCD, per sobre de la
+  // data tocada, i la fem caure a sota si no hi ha prou espai amunt.
+  const screenRect = screen.getBoundingClientRect();
+  const cellRect = cell.getBoundingClientRect();
+  const popupWidth = popup.offsetWidth || 140;
+  const popupHeight = popup.offsetHeight || 34;
+  const gap = 10;
+
+  let top = (cellRect.top - screenRect.top) - popupHeight - gap;
+  let arrowTop = false;
+  if(top < 0){
+    top = (cellRect.bottom - screenRect.top) + gap;
+    arrowTop = true;
+  }
+  let left = (cellRect.left - screenRect.left) + (cellRect.width / 2) - (popupWidth / 2);
+  left = Math.max(4, Math.min(left, screenRect.width - popupWidth - 4));
+
+  popup.style.top = `${top}px`;
+  popup.style.left = `${left}px`;
+  popup.classList.toggle('arrow-top', arrowTop);
+}
+
+function hideHolidayPopup(){
+  const popup = document.getElementById('holidayPopup');
+  if(popup) popup.classList.remove('visible');
+  openHolidayKey = null;
+}
+
+function toggleHolidayPopup(cell, name, key){
+  if(openHolidayKey === key){
+    hideHolidayPopup();
+  } else {
+    showHolidayPopup(cell, name, key);
   }
 }
 
