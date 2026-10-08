@@ -236,6 +236,27 @@
 
   .top-right{ display:flex; align-items:center; gap:8px; }
 
+  /* Botó de llengua, com un indicador de mode a la pantalla LCD */
+  .lang-chip{
+    position:relative;
+    appearance:none;
+    background:transparent;
+    color:var(--lcd-ink);
+    border:1.5px solid currentColor;
+    border-radius:3px;
+    font:inherit;
+    font-weight:800;
+    font-size:.9em;
+    letter-spacing:.08em;
+    line-height:1;
+    padding:2px 5px 2px 6px;
+    margin:0;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .lang-chip::after{ content:""; position:absolute; inset:-10px -8px; } /* àrea de toc més gran */
+  .lang-chip:active{ transform:scale(.9); }
+
   .rain-icon{
     width:clamp(12px,2vw,15px);
     height:clamp(12px,2vw,15px);
@@ -323,6 +344,7 @@
 
   .watch-buttons{
     display:flex;
+    flex-wrap:wrap;
     justify-content:center;
     gap:clamp(8px,1.8vw,12px);
     margin:clamp(14px,2.6vw,20px) auto 0;
@@ -362,6 +384,12 @@
     color:var(--accent-light);
     filter:drop-shadow(0 0 4px var(--accent));
   }
+  /* Dos grups de botons: si no caben en una fila, passen a 2 + 2. */
+  .btn-group{ display:flex; gap:clamp(8px,1.8vw,12px); }
+  .light-btn.icon-only{ padding-left:clamp(10px,2vw,13px); padding-right:clamp(10px,2vw,13px); }
+  .sound-toggle .icon-on{ display:none; }
+  .sound-toggle.active .icon-on{ display:block; }
+  .sound-toggle.active .icon-off{ display:none; }
   .light-btn.loading .light-icon{
     animation: blink 1s steps(1) infinite;
   }
@@ -584,6 +612,7 @@
                 <path d="M12 12v8a2 2 0 0 1-4 0"/>
                 <path d="M12 4v2"/>
               </svg>
+              <button class="lang-chip" id="langBtn" type="button" aria-label="Llengua: Català">CA</button>
               <span class="signal-bars"><span></span><span></span><span></span><span></span></span>
             </span>
           </div>
@@ -594,22 +623,22 @@
 
           <div class="modules">
             <div class="module">
-              <span class="module-label">TEMP</span>
+              <span class="module-label" data-i18n="mTemp">TEMP</span>
               <span class="module-value" id="tempValue">-- °C</span>
             </div>
             <div class="module-divider"></div>
             <div class="module">
-              <span class="module-label">HUMIT</span>
+              <span class="module-label" data-i18n="mHumid">HUMIT</span>
               <span class="module-value" id="humidityValue">-- %</span>
             </div>
             <div class="module-divider"></div>
             <div class="module">
-              <span class="module-label">SENS</span>
+              <span class="module-label" data-i18n="mFeels">SENS</span>
               <span class="module-value" id="feelsValue">-- °C</span>
             </div>
             <div class="module-divider"></div>
             <div class="module">
-              <span class="module-label">ALT</span>
+              <span class="module-label" data-i18n="mAlt">ALT</span>
               <span class="module-value" id="altValue">-- m</span>
             </div>
           </div>
@@ -617,19 +646,30 @@
       </div>
     </div>
     <div class="watch-buttons">
-      <button class="light-btn" id="nightToggle" type="button" aria-pressed="false" aria-label="Activa la vista nocturna">
-        <svg class="light-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <div class="btn-group">
+        <button class="light-btn" id="nightToggle" type="button" aria-pressed="false" data-i18n-aria="night" aria-label="Vista nocturna">
+          <svg class="light-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"/>
         </svg>
-        <span class="light-label">LIGHT</span>
-      </button>
-      <button class="light-btn" id="racToggle" type="button" aria-pressed="false" aria-label="Escolta el darrer episodi de La Competència (RAC1)">
-        <svg class="light-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <span class="light-label" data-i18n="light">LLUM</span>
+        </button>
+        <button class="light-btn" id="racToggle" type="button" aria-pressed="false" data-i18n-aria="rac1" aria-label="Escolta La Competència (RAC1)">
+          <svg class="light-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="2"></circle>
           <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path>
         </svg>
-        <span class="light-label">RAC1</span>
-      </button>
+          <span class="light-label">RAC1</span>
+        </button>
+      </div>
+      <div class="btn-group">
+        <button class="light-btn" id="speakBtn" type="button" data-i18n-aria="speak" aria-label="Digues l'hora">
+          <span class="light-label" data-i18n="speakLabel">HORA</span>
+        </button>
+        <button class="light-btn icon-only sound-toggle" id="chimeToggle" type="button" aria-pressed="false" data-i18n-aria="chime" aria-label="Anuncia les hores en punt">
+          <svg class="light-icon icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+          <svg class="light-icon icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        </button>
+      </div>
     </div>
     <div class="location-label" id="placeValue">--</div>
   </div>
@@ -639,11 +679,11 @@
       <div class="bezel">
         <div class="lcd-screen" id="calendarScreen">
           <div class="cal-header">
-            <span class="cal-label">CAL</span>
+            <span class="cal-label" data-i18n="cal">CAL</span>
             <div class="cal-nav">
-              <button class="cal-arrow" id="calPrev" type="button" aria-label="Mes anterior">&#8249;</button>
+              <button class="cal-arrow" id="calPrev" type="button" data-i18n-aria="prev" aria-label="Mes anterior">&#8249;</button>
               <span class="cal-month" id="calMonth">-- ----</span>
-              <button class="cal-arrow" id="calNext" type="button" aria-label="Mes següent">&#8250;</button>
+              <button class="cal-arrow" id="calNext" type="button" data-i18n-aria="next" aria-label="Mes següent">&#8250;</button>
             </div>
           </div>
           <div class="cal-grid" id="calGrid"></div>
@@ -724,6 +764,7 @@ function renderTime(){
     ...String(now.getMinutes()).padStart(2,'0'),
     ...String(now.getSeconds()).padStart(2,'0')
   ];
+  checkHourlyChime(now);
   const order = ['a','b','c','d','e','f','g'];
   chars.forEach((ch, i) => {
     const segs = SEGMENTS[ch] || [];
@@ -740,6 +781,230 @@ const DIA_NOMS = ['DIUMENGE','DILLUNS','DIMARTS','DIMECRES','DIJOUS','DIVENDRES'
 const DIA_CURT = ['DG','DL','DT','DC','DJ','DV','DS'];
 const MES_NOMS = ['GENER','FEBRER','MARÇ','ABRIL','MAIG','JUNY','JULIOL','AGOST','SETEMBRE','OCTUBRE','NOVEMBRE','DESEMBRE'];
 
+/* ===================== LLENGÜES ===================== */
+// Ordre del botó de llengua: català, occità, francès, anglès, alemany, italià, portuguès.
+const LANGS = ['ca','oc','fr','en','de','it','pt'];
+const LANG_STORAGE_KEY = 'kasioLang';
+let currentLang = 'ca';
+
+// Noms de les festes (la taula FESTIUS en guarda l'identificador).
+const I18N = {
+  ca: {
+    name: 'Català',
+    days: ['DG','DL','DT','DC','DJ','DV','DS'],
+    months: ['GENER','FEBRER','MARÇ','ABRIL','MAIG','JUNY','JULIOL','AGOST','SETEMBRE','OCTUBRE','NOVEMBRE','DESEMBRE'],
+    ui: { light:'LLUM', cal:'CAL', mTemp:'TEMP', mHumid:'HUMIT', mFeels:'SENS', mAlt:'ALT',
+          loading:'CARREGANT', unknownPlace:'UBICACIÓ DESCONEGUDA', approx:'(aprox.)', approxOnly:'UBICACIÓ APROX.', na:'N/D',
+          speakLabel:'HORA', night:'Vista nocturna', rac1:'Escolta La Competència (RAC1)', speak:"Digues l'hora",
+          chime:'Anuncia les hores en punt', lang:'Llengua', prev:'Mes anterior', next:'Mes següent',
+          chimeOn:'Avís de les hores activat.', chimeOff:'Avís de les hores desactivat.' },
+    holidays: { capdany:"Cap d'Any", reis:'Reis', divSant:'Divendres Sant', dillPasqua:'Dilluns de Pasqua Florida',
+      treball:'Festa del Treball', pasquaGranada:'Pasqua Granada (festa local)', santJoan:'Sant Joan', assumpcio:'Assumpció',
+      diada:'Diada Nacional de Catalunya', merce:'La Mercè (festa local)', hispanitat:"Festa Nacional d'Espanya",
+      totsSants:'Tots Sants', constitucio:'Dia de la Constitució', immaculada:'La Immaculada', nadal:'Nadal', santEsteve:'Sant Esteve' }
+  },
+  oc: {
+    name: 'Occitan',
+    days: ['DG','DL','DM','DC','DJ','DV','DS'],
+    months: ['GENIÈR','FEBRIÈR','MARÇ','ABRIL','MAI','JUNH','JULHET','AGOST','SETEMBRE','OCTOBRE','NOVEMBRE','DECEMBRE'],
+    ui: { light:'LUM', cal:'CAL', mTemp:'TEMP', mHumid:'UMID', mFeels:'SENS', mAlt:'ALT',
+          loading:'CARGAMENT', unknownPlace:'LOC DESCONEGUT', approx:'(aprox.)', approxOnly:'LOC APROX.', na:'N/D',
+          speakLabel:'ORA', night:'Vista de nuèch', rac1:'Escotar La Competència (RAC1)', speak:"Dire l'ora",
+          chime:'Anonciar las oras', lang:'Lenga', prev:'Mes precedent', next:'Mes seguent',
+          chimeOn:'Anóncia de las oras activada.', chimeOff:'Anóncia de las oras desactivada.' },
+    holidays: { capdany:"Cap d'An", reis:'Rèis', divSant:'Divendres Sant', dillPasqua:'Diluns de Pascas',
+      treball:'Fèsta del Trabalh', pasquaGranada:'Diluns de Pentecòsta (fèsta locala)', santJoan:'Sant Joan', assumpcio:'Assompcion',
+      diada:'Fèsta Nacionala de Catalonha', merce:'La Mercè (fèsta locala)', hispanitat:"Fèsta Nacionala d'Espanha",
+      totsSants:'Totsants', constitucio:'Jorn de la Constitucion', immaculada:'Immaculada Concepcion', nadal:'Nadal', santEsteve:'Sant Estève' }
+  },
+  fr: {
+    name: 'Français',
+    days: ['DI','LU','MA','ME','JE','VE','SA'],
+    months: ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'],
+    ui: { light:'LUM.', cal:'CAL', mTemp:'TEMP', mHumid:'HUMID', mFeels:'RESS', mAlt:'ALT',
+          loading:'CHARGE', unknownPlace:'LIEU INCONNU', approx:'(approx.)', approxOnly:'LIEU APPROX.', na:'N/D',
+          speakLabel:'HEURE', night:'Mode nuit', rac1:'Écouter La Competència (RAC1)', speak:"Dire l'heure",
+          chime:'Annoncer les heures pile', lang:'Langue', prev:'Mois précédent', next:'Mois suivant',
+          chimeOn:'Annonce des heures activée.', chimeOff:'Annonce des heures désactivée.' },
+    holidays: { capdany:"Jour de l'An", reis:'Épiphanie', divSant:'Vendredi saint', dillPasqua:'Lundi de Pâques',
+      treball:'Fête du Travail', pasquaGranada:'Lundi de Pentecôte (fête locale)', santJoan:'Saint-Jean', assumpcio:'Assomption',
+      diada:'Fête nationale de Catalogne', merce:'La Mercè (fête locale)', hispanitat:"Fête nationale d'Espagne",
+      totsSants:'Toussaint', constitucio:'Jour de la Constitution', immaculada:'Immaculée Conception', nadal:'Noël', santEsteve:'Saint-Étienne' }
+  },
+  en: {
+    name: 'English',
+    days: ['SU','MO','TU','WE','TH','FR','SA'],
+    months: ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'],
+    ui: { light:'LIGHT', cal:'CAL', mTemp:'TEMP', mHumid:'HUMID', mFeels:'FEELS', mAlt:'ALT',
+          loading:'LOADING', unknownPlace:'UNKNOWN PLACE', approx:'(approx.)', approxOnly:'APPROX. PLACE', na:'N/A',
+          speakLabel:'TIME', night:'Night mode', rac1:'Listen to La Competència (RAC1)', speak:'Say the time',
+          chime:'Announce every hour', lang:'Language', prev:'Previous month', next:'Next month',
+          chimeOn:'Hourly announcement on.', chimeOff:'Hourly announcement off.' },
+    holidays: { capdany:"New Year's Day", reis:'Epiphany', divSant:'Good Friday', dillPasqua:'Easter Monday',
+      treball:'Labour Day', pasquaGranada:'Whit Monday (local holiday)', santJoan:"Saint John's Day", assumpcio:'Assumption Day',
+      diada:'National Day of Catalonia', merce:'La Mercè (local holiday)', hispanitat:"Spain's National Day",
+      totsSants:"All Saints' Day", constitucio:'Constitution Day', immaculada:'Immaculate Conception', nadal:'Christmas Day', santEsteve:"Saint Stephen's Day" }
+  },
+  de: {
+    name: 'Deutsch',
+    days: ['SO','MO','DI','MI','DO','FR','SA'],
+    months: ['JANUAR','FEBRUAR','MÄRZ','APRIL','MAI','JUNI','JULI','AUGUST','SEPTEMBER','OKTOBER','NOVEMBER','DEZEMBER'],
+    ui: { light:'LICHT', cal:'KAL', mTemp:'TEMP', mHumid:'FEUCHT', mFeels:'GEFÜHLT', mAlt:'HÖHE',
+          loading:'LÄDT', unknownPlace:'UNBEKANNTER ORT', approx:'(ca.)', approxOnly:'ORT CA.', na:'k. A.',
+          speakLabel:'ZEIT', night:'Nachtmodus', rac1:'La Competència hören (RAC1)', speak:'Uhrzeit ansagen',
+          chime:'Volle Stunden ansagen', lang:'Sprache', prev:'Vorheriger Monat', next:'Nächster Monat',
+          chimeOn:'Stundenansage an.', chimeOff:'Stundenansage aus.' },
+    holidays: { capdany:'Neujahr', reis:'Heilige Drei Könige', divSant:'Karfreitag', dillPasqua:'Ostermontag',
+      treball:'Tag der Arbeit', pasquaGranada:'Pfingstmontag (lokaler Feiertag)', santJoan:'Johannistag', assumpcio:'Mariä Himmelfahrt',
+      diada:'Nationalfeiertag Kataloniens', merce:'La Mercè (lokaler Feiertag)', hispanitat:'Spanischer Nationalfeiertag',
+      totsSants:'Allerheiligen', constitucio:'Tag der Verfassung', immaculada:'Mariä Empfängnis', nadal:'Weihnachten', santEsteve:'Stephanstag' }
+  },
+  it: {
+    name: 'Italiano',
+    days: ['DO','LU','MA','ME','GI','VE','SA'],
+    months: ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO','LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'],
+    ui: { light:'LUCE', cal:'CAL', mTemp:'TEMP', mHumid:'UMID', mFeels:'PERC', mAlt:'ALT',
+          loading:'CARICA', unknownPlace:'LUOGO SCONOSCIUTO', approx:'(appross.)', approxOnly:'LUOGO APPROSS.', na:'N/D',
+          speakLabel:'ORA', night:'Modalità notte', rac1:'Ascolta La Competència (RAC1)', speak:"Dimmi l'ora",
+          chime:'Annuncia le ore esatte', lang:'Lingua', prev:'Mese precedente', next:'Mese successivo',
+          chimeOn:'Annuncio delle ore attivato.', chimeOff:'Annuncio delle ore disattivato.' },
+    holidays: { capdany:'Capodanno', reis:'Epifania', divSant:'Venerdì santo', dillPasqua:"Lunedì dell'Angelo",
+      treball:'Festa del Lavoro', pasquaGranada:'Lunedì di Pentecoste (festa locale)', santJoan:'San Giovanni', assumpcio:'Assunzione',
+      diada:'Festa nazionale della Catalogna', merce:'La Mercè (festa locale)', hispanitat:'Festa nazionale di Spagna',
+      totsSants:'Ognissanti', constitucio:'Giorno della Costituzione', immaculada:'Immacolata Concezione', nadal:'Natale', santEsteve:'Santo Stefano' }
+  },
+  pt: {
+    name: 'Português',
+    days: ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'],
+    months: ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'],
+    ui: { light:'LUZ', cal:'CAL', mTemp:'TEMP', mHumid:'HUMID', mFeels:'SENS', mAlt:'ALT',
+          loading:'A CARREGAR', unknownPlace:'LOCAL DESCONHECIDO', approx:'(aprox.)', approxOnly:'LOCAL APROX.', na:'N/D',
+          speakLabel:'HORA', night:'Modo noturno', rac1:'Ouvir La Competència (RAC1)', speak:'Dizer as horas',
+          chime:'Anunciar as horas certas', lang:'Língua', prev:'Mês anterior', next:'Mês seguinte',
+          chimeOn:'Aviso das horas ativado.', chimeOff:'Aviso das horas desativado.' },
+    holidays: { capdany:'Ano Novo', reis:'Dia de Reis', divSant:'Sexta-feira Santa', dillPasqua:'Segunda-feira de Páscoa',
+      treball:'Dia do Trabalhador', pasquaGranada:'Segunda-feira de Pentecostes (feriado local)', santJoan:'São João', assumpcio:'Assunção',
+      diada:'Dia Nacional da Catalunha', merce:'La Mercè (feriado local)', hispanitat:'Dia Nacional de Espanha',
+      totsSants:'Todos os Santos', constitucio:'Dia da Constituição', immaculada:'Imaculada Conceição', nadal:'Natal', santEsteve:'Santo Estêvão' }
+  }
+};
+
+function T(){ return I18N[currentLang] || I18N.ca; }
+function holidayLabel(id){ return T().holidays[id] || I18N.ca.holidays[id] || id; }
+
+/* ===================== L'HORA DITA EN CADA LLENGUA ===================== */
+const hh24 = h => ((h % 24) + 24) % 24;
+
+// Català: sistema de quarts (Optimot). Els quarts compten cap a l'hora
+// següent: 7:15 «un quart de vuit», 7:30 «dos quarts de vuit»,
+// 7:20 «un quart i cinc de vuit», 7:25 «dos quarts menys cinc de vuit»…
+const CA_H = ['dotze','una','dues','tres','quatre','cinc','sis','set','vuit','nou','deu','onze'];
+function caHora(h){ const n = hh24(h) % 12 || 12; return n === 1 ? 'la una' : 'les ' + CA_H[n % 12]; }
+function caDe(h){ const w = CA_H[hh24(h) % 12]; return /^[aeiouàèéíòóú]/.test(w) ? "d'" + w : 'de ' + w; }
+function caVerb(h){ return (hh24(h) % 12 || 12) === 1 ? 'És' : 'Són'; }
+function caMin(n){ return (n === 5 || n === 10) ? String(n) : (n === 1 ? 'un minut' : n + ' minuts'); }
+function caPeriode(H){
+  const v = hh24(H);
+  if(v < 6) return 'de la matinada';
+  if(v < 12) return 'del matí';
+  if(v < 15) return 'del migdia';
+  if(v < 20) return 'de la tarda';
+  if(v < 22) return 'del vespre';
+  return 'de la nit';
+}
+function phraseCa(H, M){
+  const per = caPeriode(H), next = H + 1;
+  if(M === 0) return `${caVerb(H)} ${caHora(H)} en punt ${per}.`;
+  const q = Math.floor(M / 15), r = M % 15;
+  if(q === 0 && r <= 7) return `${caVerb(H)} ${caHora(H)} i ${caMin(r)} ${per}.`;
+  if(q === 3 && r >= 8) return `${caVerb(next)} ${caHora(next)} menys ${caMin(15 - r)} ${per}.`;
+  let quarts = q, extra = '';
+  if(r > 0 && r <= 7) extra = ` i ${caMin(r)}`;
+  else if(r >= 8){ quarts = q + 1; extra = ` menys ${caMin(15 - r)}`; }
+  const qNom = ['', 'un quart', 'dos quarts', 'tres quarts'][quarts];
+  return `${quarts === 1 ? 'És' : 'Són'} ${qNom}${extra} ${caDe(next)} ${per}.`;
+}
+
+function phraseOc(H, M){
+  const W = ['dotze','una','doas','tres','quatre','cinc','sièis','sèt','uèch','nòu','dètz','onze'];
+  const name = h => { const v = hh24(h); if(v === 0) return 'mièjanuèch'; if(v === 12) return 'miègjorn'; const n = v % 12 || 12; return n === 1 ? 'una ora' : `${W[n % 12]} oras`; };
+  const verb = h => { const v = hh24(h); return (v === 0 || v === 12 || v % 12 === 1) ? 'Es' : 'Son'; };
+  if(M === 0)  return `${verb(H)} ${name(H)}.`;
+  if(M === 15) return `${verb(H)} ${name(H)} e quart.`;
+  if(M === 30) return `${verb(H)} ${name(H)} e mièja.`;
+  if(M === 45) return `${verb(H+1)} ${name(H+1)} mens lo quart.`;
+  if(M < 30)   return `${verb(H)} ${name(H)} e ${M}.`;
+  return `${verb(H+1)} ${name(H+1)} mens ${60 - M}.`;
+}
+
+function phraseFr(H, M){
+  const name = h => { const v = hh24(h); if(v === 0) return 'minuit'; if(v === 12) return 'midi'; const n = v % 12 || 12; return n === 1 ? 'une heure' : `${n} heures`; };
+  const per = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; if(v < 12) return ' du matin'; if(v < 18) return " de l'après-midi"; return ' du soir'; };
+  const demi = h => (hh24(h) === 0 || hh24(h) === 12) ? 'demi' : 'demie';
+  if(M === 0)  return `Il est ${name(H)}${per(H)}.`;
+  if(M === 15) return `Il est ${name(H)} et quart${per(H)}.`;
+  if(M === 30) return `Il est ${name(H)} et ${demi(H)}${per(H)}.`;
+  if(M === 45) return `Il est ${name(H+1)} moins le quart${per(H+1)}.`;
+  if(M < 30)   return `Il est ${name(H)} ${M}${per(H)}.`;
+  return `Il est ${name(H+1)} moins ${60 - M}${per(H+1)}.`;
+}
+
+function phraseEn(H, M){
+  const name = h => { const v = hh24(h); if(v === 0) return 'midnight'; if(v === 12) return 'noon'; return String(v % 12 || 12); };
+  const per = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; if(v < 12) return ' in the morning'; if(v < 18) return ' in the afternoon'; if(v < 22) return ' in the evening'; return ' at night'; };
+  const mins = n => n % 5 === 0 ? String(n) : (n === 1 ? 'one minute' : `${n} minutes`);
+  if(M === 0){ const n = name(H); return (n === 'noon' || n === 'midnight') ? `It's ${n}.` : `It's ${n} o'clock${per(H)}.`; }
+  if(M === 15) return `It's quarter past ${name(H)}${per(H)}.`;
+  if(M === 30) return `It's half past ${name(H)}${per(H)}.`;
+  if(M === 45) return `It's quarter to ${name(H+1)}${per(H+1)}.`;
+  if(M < 30)   return `It's ${mins(M)} past ${name(H)}${per(H)}.`;
+  return `It's ${mins(60 - M)} to ${name(H+1)}${per(H+1)}.`;
+}
+
+function phraseDe(H, M){
+  const W = ['zwölf','eins','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn','elf'];
+  const w = h => W[hh24(h) % 12];
+  const per = h => { const v = hh24(h); if(v === 0) return ''; if(v < 5) return ' nachts'; if(v < 11) return ' morgens'; if(v < 13) return ' mittags'; if(v < 18) return ' nachmittags'; if(v < 22) return ' abends'; return ' nachts'; };
+  const mins = n => n % 5 === 0 ? String(n) : (n === 1 ? 'eine Minute' : `${n} Minuten`);
+  if(M === 0){ const v = hh24(H); if(v === 0) return 'Es ist Mitternacht.'; const n = v % 12 || 12; return `Es ist ${n === 1 ? 'ein' : W[n % 12]} Uhr${per(H)}.`; }
+  if(M === 15) return `Es ist Viertel nach ${w(H)}${per(H)}.`;
+  if(M === 30) return `Es ist halb ${w(H+1)}${per(H+1)}.`;
+  if(M === 45) return `Es ist Viertel vor ${w(H+1)}${per(H+1)}.`;
+  if(M < 30)   return `Es ist ${mins(M)} nach ${w(H)}${per(H)}.`;
+  return `Es ist ${mins(60 - M)} vor ${w(H+1)}${per(H+1)}.`;
+}
+
+function phraseIt(H, M){
+  const W = ['dodici','una','due','tre','quattro','cinque','sei','sette','otto','nove','dieci','undici'];
+  const name = h => { const v = hh24(h); if(v === 0) return 'mezzanotte'; if(v === 12) return 'mezzogiorno'; const n = v % 12 || 12; return n === 1 ? "l'una" : `le ${W[n % 12]}`; };
+  const verb = h => { const v = hh24(h); return (v === 0 || v === 12 || v % 12 === 1) ? 'È' : 'Sono'; };
+  const per = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; if(v < 6) return ' di notte'; if(v < 12) return ' di mattina'; if(v < 18) return ' del pomeriggio'; return ' di sera'; };
+  if(M === 0)  return `${verb(H)} ${name(H)} in punto${per(H)}.`;
+  if(M === 15) return `${verb(H)} ${name(H)} e un quarto${per(H)}.`;
+  if(M === 30) return `${verb(H)} ${name(H)} e mezza${per(H)}.`;
+  if(M === 45) return `${verb(H+1)} ${name(H+1)} meno un quarto${per(H+1)}.`;
+  if(M < 30)   return `${verb(H)} ${name(H)} e ${M}${per(H)}.`;
+  return `${verb(H+1)} ${name(H+1)} meno ${60 - M}${per(H+1)}.`;
+}
+
+function phrasePt(H, M){
+  const W = ['doze','uma','duas','três','quatro','cinco','seis','sete','oito','nove','dez','onze'];
+  const name = h => { const v = hh24(h); if(v === 0) return 'meia-noite'; if(v === 12) return 'meio-dia'; return W[v % 12]; };
+  const verb = h => { const v = hh24(h); return (v === 0 || v === 12 || v % 12 === 1) ? 'É' : 'São'; };
+  const horas = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; return v % 12 === 1 ? ' hora' : ' horas'; };
+  const per = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; if(v < 6) return ' da madrugada'; if(v < 12) return ' da manhã'; if(v < 20) return ' da tarde'; return ' da noite'; };
+  if(M === 0)  return `${verb(H)} ${name(H)}${horas(H)} em ponto${per(H)}.`;
+  if(M === 15) return `${verb(H)} ${name(H)} e um quarto${per(H)}.`;
+  if(M === 30) return `${verb(H)} ${name(H)} e meia${per(H)}.`;
+  if(M === 45) return `${verb(H+1)} ${name(H+1)} menos um quarto${per(H+1)}.`;
+  if(M < 30)   return `${verb(H)} ${name(H)} e ${M}${per(H)}.`;
+  return `${verb(H+1)} ${name(H+1)} menos ${60 - M}${per(H+1)}.`;
+}
+
+const TIME_PHRASE = { ca:phraseCa, oc:phraseOc, fr:phraseFr, en:phraseEn, de:phraseDe, it:phraseIt, pt:phrasePt };
+function timePhrase(H, M){ return (TIME_PHRASE[currentLang] || phraseCa)(H, M); }
+
+
 /* ===================== FESTIUS OFICIALS (Barcelona) =====================
    Font: calendari laboral de la Generalitat de Catalunya + festes locals
    fixades per l'Ajuntament de Barcelona. Els festius estatals i catalans
@@ -752,40 +1017,41 @@ const MES_NOMS = ['GENER','FEBRER','MARÇ','ABRIL','MAIG','JUNY','JULIOL','AGOST
    quan es publiquen els del proper any). Clau: "MM-DD".
    Fonts consultades (setembre 2026): ajuntament.barcelona.cat/calendarifestius,
    beteve.cat i calendarioslaborales.com. */
+// Els noms de cada festa, en totes les llengües, són a I18N[...].holidays.
 const FESTIUS = {
   2026: {
-    '01-01': "Cap d'Any",
-    '01-06': 'Reis',
-    '04-03': 'Divendres Sant',
-    '04-06': 'Dilluns de Pasqua Florida',
-    '05-01': 'Festa del Treball',
-    '05-25': 'Pasqua Granada (festa local)',
-    '06-24': 'Sant Joan',
-    '08-15': 'Assumpció',
-    '09-11': 'Diada Nacional de Catalunya',
-    '09-24': 'La Mercè (festa local)',
-    '10-12': "Festa Nacional d'Espanya",
-    '11-01': 'Tots Sants',
-    '12-06': 'Dia de la Constitució',
-    '12-08': 'La Immaculada',
-    '12-25': 'Nadal',
-    '12-26': 'Sant Esteve'
+    '01-01': 'capdany',
+    '01-06': 'reis',
+    '04-03': 'divSant',
+    '04-06': 'dillPasqua',
+    '05-01': 'treball',
+    '05-25': 'pasquaGranada',
+    '06-24': 'santJoan',
+    '08-15': 'assumpcio',
+    '09-11': 'diada',
+    '09-24': 'merce',
+    '10-12': 'hispanitat',
+    '11-01': 'totsSants',
+    '12-06': 'constitucio',
+    '12-08': 'immaculada',
+    '12-25': 'nadal',
+    '12-26': 'santEsteve'
   },
   2027: {
-    '01-01': "Cap d'Any",
-    '01-06': 'Reis',
-    '03-26': 'Divendres Sant',
-    '03-29': 'Dilluns de Pasqua Florida',
-    '05-01': 'Festa del Treball',
-    '06-24': 'Sant Joan',
-    '08-15': 'Assumpció',
-    '09-11': 'Diada Nacional de Catalunya',
-    '10-12': "Festa Nacional d'Espanya",
-    '11-01': 'Tots Sants',
-    '12-06': 'Dia de la Constitució',
-    '12-08': 'La Immaculada',
-    '12-25': 'Nadal',
-    '12-26': 'Sant Esteve'
+    '01-01': 'capdany',
+    '01-06': 'reis',
+    '03-26': 'divSant',
+    '03-29': 'dillPasqua',
+    '05-01': 'treball',
+    '06-24': 'santJoan',
+    '08-15': 'assumpcio',
+    '09-11': 'diada',
+    '10-12': 'hispanitat',
+    '11-01': 'totsSants',
+    '12-06': 'constitucio',
+    '12-08': 'immaculada',
+    '12-25': 'nadal',
+    '12-26': 'santEsteve'
     // Els 2 festius locals de Barcelona per al 2027 encara no estaven
     // publicats a la font oficial en el moment de crear aquesta taula.
   }
@@ -797,9 +1063,9 @@ function getFestius(year){
 
 function renderDate(){
   const now = new Date();
-  document.getElementById('dayName').textContent = DIA_CURT[now.getDay()];
+  document.getElementById('dayName').textContent = T().days[now.getDay()];
   const dd = String(now.getDate()).padStart(2,'0');
-  const mm = MES_NOMS[now.getMonth()].slice(0,3);
+  const mm = T().months[now.getMonth()].slice(0,3);
   document.getElementById('dateDisplay').textContent = `${dd} ${mm} ${now.getFullYear()}`;
 }
 
@@ -815,7 +1081,7 @@ function buildCalendar(slideDirection){
   const displayed = getDisplayedDate();
   const year = displayed.getFullYear();
   const month = displayed.getMonth();
-  document.getElementById('calMonth').textContent = `${MES_NOMS[month]} ${year}`;
+  document.getElementById('calMonth').textContent = `${T().months[month]} ${year}`;
 
   const grid = document.getElementById('calGrid');
   const previousOpenKey = openHolidayKey;
@@ -824,7 +1090,7 @@ function buildCalendar(slideDirection){
   const renderGridContent = () => {
     grid.innerHTML = '';
 
-    DIA_CURT.slice(1).concat(DIA_CURT[0]).forEach(d => {
+    T().days.slice(1).concat(T().days[0]).forEach(d => {
       const el = document.createElement('div');
       el.className = 'cal-dayname';
       el.textContent = d;
@@ -848,7 +1114,7 @@ function buildCalendar(slideDirection){
     for(let d=1; d<=daysInMonth; d++){
       const dow = new Date(year, month, d).getDay(); // 0=diumenge, 6=dissabte
       const key = `${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const holidayName = festius[key];
+      const holidayName = festius[key] ? holidayLabel(festius[key]) : null;
 
       const el = document.createElement('div');
       let cls = 'cal-cell';
@@ -863,7 +1129,7 @@ function buildCalendar(slideDirection){
         el.dataset.holidayName = holidayName;
         el.setAttribute('tabindex', '0');
         el.setAttribute('role', 'button');
-        el.setAttribute('aria-label', `${d} ${MES_NOMS[month]}: ${holidayName}`);
+        el.setAttribute('aria-label', `${d} ${T().months[month]}: ${holidayName}`);
         el.addEventListener('click', (e) => {
           e.stopPropagation(); // no ha de disparar el canvi de tema en tocar la pantalla
           toggleHolidayPopup(el, holidayName, key);
@@ -1036,14 +1302,18 @@ const FALLBACK_COORDS = { lat: 41.4952, lon: 2.1585 }; // Ripollet (08291) — v
 const RAIN_THRESHOLD = 50; // % de probabilitat a partir del qual es considera "pluja imminent"
 
 async function fetchPlaceName(lat, lon, isFallback){
+  lastCoords = { lat, lon, isFallback };
+  // El nom del lloc es demana en la llengua triada (l'occità, en català).
+  const geoLang = currentLang === 'oc' ? 'ca' : currentLang;
   try{
-    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ca`);
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${geoLang}`);
     const data = await res.json();
     const place = data.city || data.locality || data.principalSubdivision || '';
-    document.getElementById('placeValue').textContent = (place || 'UBICACIÓ DESCONEGUDA') + (isFallback ? ' (aprox.)' : '');
+    placeState = { name: place, isFallback, failed: false };
   }catch(err){
-    document.getElementById('placeValue').textContent = isFallback ? 'UBICACIÓ APROX.' : '';
+    placeState = { name: '', isFallback, failed: true };
   }
+  renderPlace();
 }
 
 function updateRainIcon(weather){
@@ -1086,6 +1356,7 @@ async function fetchTempAlt(lat, lon, isFallback){
     const elev = await elevRes.json();
 
     if(weather && weather.current){
+      ['tempValue','humidityValue','feelsValue'].forEach(id => { document.getElementById(id).dataset.na = '0'; });
       const t = Math.round(weather.current.temperature_2m);
       document.getElementById('tempValue').textContent = `${t}°C`;
       const h = Math.round(weather.current.relative_humidity_2m);
@@ -1098,13 +1369,15 @@ async function fetchTempAlt(lat, lon, isFallback){
     }
     if(elev && elev.elevation && elev.elevation.length){
       const a = Math.round(elev.elevation[0]);
+      document.getElementById('altValue').dataset.na = '0';
       document.getElementById('altValue').textContent = `${a} m`;
     }
   }catch(err){
-    document.getElementById('tempValue').textContent = 'N/D';
-    document.getElementById('altValue').textContent = 'N/D';
-    document.getElementById('humidityValue').textContent = 'N/D';
-    document.getElementById('feelsValue').textContent = 'N/D';
+    ['tempValue','altValue','humidityValue','feelsValue'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = T().ui.na;
+      el.dataset.na = '1';
+    });
   }
 }
 
@@ -1209,7 +1482,7 @@ function setRacButtonState(state){
   btn.classList.toggle('loading', state === 'loading');
   btn.setAttribute('aria-pressed', String(state === 'playing'));
   const label = btn.querySelector('.light-label');
-  if(label) label.textContent = state === 'loading' ? 'CARREGANT' : 'RAC1';
+  if(label) label.textContent = state === 'loading' ? T().ui.loading : 'RAC1';
 }
 
 async function fetchLatestEpisodeUrl(){
@@ -1254,8 +1527,189 @@ function setupRac1Button(){
   });
 }
 
+/* ===================== VEU I AVÍS DE LES HORES ===================== */
+// Veu preferida per a cada llengua. L'occità gairebé no té veus de síntesi
+// als mòbils: s'intenta, i si no n'hi ha es llegeix amb veu catalana,
+// que és la que s'hi assembla més.
+const SPEECH_LANGS = {
+  ca:['ca-ES','ca'], oc:['oc-FR','oc','ca-ES','ca'], fr:['fr-FR','fr'], en:['en-GB','en'],
+  de:['de-DE','de'], it:['it-IT','it'], pt:['pt-PT','pt']
+};
+let voiceList = [];
+function refreshVoices(){
+  try{ voiceList = ('speechSynthesis' in window) ? window.speechSynthesis.getVoices() : []; }catch(err){ voiceList = []; }
+}
+if('speechSynthesis' in window){
+  refreshVoices();
+  window.speechSynthesis.onvoiceschanged = refreshVoices;
+}
+function pickVoice(lang){
+  if(!voiceList.length) refreshVoices();
+  const norm = s => (s || '').toLowerCase().replace('_', '-');
+  for(const pref of (SPEECH_LANGS[lang] || [])){
+    const p = norm(pref);
+    const v = voiceList.find(x => norm(x.lang) === p) || voiceList.find(x => norm(x.lang).startsWith(p + '-'));
+    if(v) return v;
+  }
+  return null;
+}
+
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const v = pickVoice(currentLang);
+  // Sense veu trobada: demanem la llengua i que el sistema triï la veu.
+  // Per a l'occità, demanem català (millor que la veu per defecte del mòbil).
+  if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = currentLang === 'oc' ? 'ca-ES' : SPEECH_LANGS[currentLang][0]; }
+  u.rate = 0.95;
+  const btn = document.getElementById('speakBtn');
+  let ducked = false;
+  u.onstart = () => {
+    if(btn) btn.classList.add('active');
+    // Si sona RAC1, abaixem el volum mentre parla (on el navegador ho permeti).
+    if(racAudio && !racAudio.paused){ racAudio.volume = 0.2; ducked = true; }
+  };
+  const done = () => {
+    if(btn) btn.classList.remove('active');
+    if(ducked && racAudio) racAudio.volume = 1;
+  };
+  u.onend = done;
+  u.onerror = done;
+  synth.speak(u);
+}
+
+function speakNow(){
+  const now = new Date();
+  speak(timePhrase(now.getHours(), now.getMinutes()));
+}
+
+// Dos xiulets curts, com el senyal horari d'un Casio.
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(AC) audioCtx = new AC();
+  }
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playHourBeeps(){
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+  const t0 = ctx.currentTime + 0.05;
+  [0, 0.22].forEach(off => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'square';
+    o.frequency.value = 2048;
+    g.gain.setValueAtTime(0.0001, t0 + off);
+    g.gain.exponentialRampToValueAtTime(0.06, t0 + off + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + off + 0.12);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0 + off); o.stop(t0 + off + 0.14);
+  });
+}
+
+const CHIME_STORAGE_KEY = 'kasioChime';
+let chimeOn = false;
+let lastChimeKey = null;
+
+function setChimeUI(){
+  const b = document.getElementById('chimeToggle');
+  if(!b) return;
+  b.classList.toggle('active', chimeOn);
+  b.setAttribute('aria-pressed', String(chimeOn));
+}
+function toggleChime(){
+  chimeOn = !chimeOn;
+  try{ localStorage.setItem(CHIME_STORAGE_KEY, chimeOn ? '1' : '0'); }catch(err){}
+  setChimeUI();
+  if(chimeOn){ playHourBeeps(); setTimeout(() => speak(T().ui.chimeOn), 450); }
+  else speak(T().ui.chimeOff);
+}
+// Es crida cada segon des de renderTime(): a cada hora en punt, xiulets + l'hora dita.
+function checkHourlyChime(now){
+  if(!chimeOn || now.getMinutes() !== 0) return;
+  const key = now.toDateString() + '-' + now.getHours();
+  if(key === lastChimeKey) return;
+  lastChimeKey = key;
+  if(now.getSeconds() > 20) return; // la pàgina estava adormida: no l'anunciem tard
+  playHourBeeps();
+  setTimeout(() => speak(timePhrase(now.getHours(), 0)), 600);
+}
+
+/* ===================== CANVI DE LLENGUA ===================== */
+let placeState = null;   // {name, isFallback, failed}
+let lastCoords = null;   // {lat, lon, isFallback}
+
+function renderPlace(){
+  const el = document.getElementById('placeValue');
+  if(!el || !placeState) return;
+  const u = T().ui;
+  if(placeState.failed){ el.textContent = placeState.isFallback ? u.approxOnly : ''; return; }
+  el.textContent = (placeState.name || u.unknownPlace) + (placeState.isFallback ? ' ' + u.approx : '');
+}
+
+function applyStaticTexts(){
+  const t = T();
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t.ui[el.dataset.i18n];
+    if(v != null) el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    const v = t.ui[el.dataset.i18nAria];
+    if(v != null) el.setAttribute('aria-label', v);
+  });
+  const chip = document.getElementById('langBtn');
+  if(chip){
+    chip.textContent = currentLang.toUpperCase();
+    chip.setAttribute('aria-label', `${t.ui.lang}: ${t.name}`);
+  }
+  ['tempValue','humidityValue','feelsValue','altValue'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el && el.dataset.na === '1') el.textContent = t.ui.na;
+  });
+  const rac = document.getElementById('racToggle');
+  if(rac && rac.classList.contains('loading')){
+    const l = rac.querySelector('.light-label');
+    if(l) l.textContent = t.ui.loading;
+  }
+  renderPlace();
+}
+
+function initLanguage(){
+  try{
+    const saved = localStorage.getItem(LANG_STORAGE_KEY);
+    if(saved && LANGS.includes(saved)) currentLang = saved;
+  }catch(err){}
+}
+
+function cycleLanguage(){
+  currentLang = LANGS[(LANGS.indexOf(currentLang) + 1) % LANGS.length];
+  try{ localStorage.setItem(LANG_STORAGE_KEY, currentLang); }catch(err){}
+  applyStaticTexts();
+  renderDate();
+  buildCalendar();
+  if(lastCoords) fetchPlaceName(lastCoords.lat, lastCoords.lon, lastCoords.isFallback);
+}
+
+function setupVoiceAndLanguage(){
+  const chip = document.getElementById('langBtn');
+  if(chip) chip.addEventListener('click', e => { e.stopPropagation(); cycleLanguage(); });
+  const sp = document.getElementById('speakBtn');
+  if(sp) sp.addEventListener('click', e => { e.stopPropagation(); getAudioCtx(); speakNow(); });
+  const ch = document.getElementById('chimeToggle');
+  if(ch) ch.addEventListener('click', e => { e.stopPropagation(); toggleChime(); });
+  try{ chimeOn = localStorage.getItem(CHIME_STORAGE_KEY) === '1'; }catch(err){}
+  setChimeUI();
+}
+
 /* ===================== INIT ===================== */
+initLanguage();
 initTheme();
+setupVoiceAndLanguage();
 setupCalendarSwipe();
 setupCalNavButtons();
 setupRac1Button();
@@ -1263,6 +1717,7 @@ renderTime();
 renderDate();
 buildCalendar();
 updateCalNavButtons();
+applyStaticTexts();
 initLocationData();
 
 setInterval(renderTime, 1000);
