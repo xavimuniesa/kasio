@@ -351,6 +351,100 @@
   .light-btn.active{ color:var(--accent-light); }
   .light-btn.active .light-icon{ color:var(--accent-light); filter:drop-shadow(0 0 4px var(--accent)); }
   :root[data-theme="night"] .light-btn.active .light-icon{ filter:none; color:var(--accent); }
+  /* Botons rodons amb icona i rètol a sota */
+  .watch-buttons .rbtn{
+    appearance:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    background:none;
+    border:none;
+    padding:0;
+    margin:0;
+    cursor:pointer;
+    color:var(--btn-text);
+    font-family:var(--mono);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .rbtn .disc{
+    width:clamp(42px, calc(var(--panel-width) * 0.14), 56px);
+    aspect-ratio:1;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(155deg, var(--metal-1) 0%, var(--metal-2) 100%);
+    box-shadow:
+      0 6px 14px -6px rgba(0,0,0,.6),
+      0 1px 0 rgba(255,255,255,.12) inset,
+      0 -2px 4px rgba(0,0,0,.4) inset;
+    transition: transform .12s ease;
+  }
+  .rbtn .disc svg{ width:48%; height:48%; color:#a2a4a8; transition: color .4s ease, filter .4s ease; }
+  .rbtn .lbl{ font-size:clamp(8px, calc(var(--panel-width) * 0.026), 11px); font-weight:800; letter-spacing:.14em; }
+  .rbtn:active .disc{ transform:scale(.92); }
+  .rbtn.active .disc svg{ color:var(--accent-light); filter:drop-shadow(0 0 4px var(--accent)); }
+  .rbtn.active .lbl{ color:var(--accent-light); }
+  .rbtn.ringing .disc{ animation:blink .6s steps(1) infinite; }
+  .rbtn.ringing .disc svg, .rbtn.ringing .lbl{ color:var(--accent-light); }
+  :root[data-theme="night"] .rbtn .disc{ box-shadow:none; }
+  :root[data-theme="night"] .rbtn .disc svg{ color:#3a2a22; }
+  :root[data-theme="night"] .rbtn.active .disc svg,
+  :root[data-theme="night"] .rbtn.ringing .disc svg{ color:var(--accent); filter:none; }
+  :root[data-theme="night"] .rbtn.active .lbl{ color:var(--accent-light); }
+
+  /* Indicador ALM a la pantalla, com als Casio, quan hi ha alguna alarma activa */
+  .alm-ind{ display:none; font-size:.82em; font-weight:800; letter-spacing:.06em; }
+  .alm-ind.on{ display:inline; }
+  #watchScreen.ringing .lcd-date-row{ animation:blink 1s steps(1) infinite; }
+
+  /* Finestra d'alarmes */
+  .alarms{ display:flex; flex-direction:column; }
+  .alarm-row{
+    display:grid;
+    grid-template-columns:auto 1fr auto auto;
+    align-items:center;
+    gap:clamp(6px,1.6vw,10px);
+    padding:clamp(5px,1.3vw,9px) 2px;
+    border-top:1.5px solid var(--lcd-line);
+  }
+  .alarm-row.off .al-time, .alarm-row.off .al-days{ opacity:.45; }
+  .al-n{ font-size:clamp(9px, calc(var(--panel-width) * 0.03), 13px); font-weight:800; letter-spacing:.08em; opacity:.7; }
+  .al-time{
+    position:relative;
+    font-size:clamp(20px, calc(var(--panel-width) * 0.085), 36px);
+    font-weight:800;
+    letter-spacing:.04em;
+    font-variant-numeric:tabular-nums;
+    cursor:pointer;
+  }
+  .al-time input{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    opacity:0;
+    border:none; padding:0; margin:0;
+    font-size:16px; /* evita el zoom de l'iPhone */
+    cursor:pointer;
+  }
+  .al-days, .al-on{
+    appearance:none;
+    background:transparent;
+    color:var(--lcd-ink);
+    border:1.5px solid var(--lcd-ink);
+    border-radius:3px;
+    font:inherit;
+    font-size:clamp(8px, calc(var(--panel-width) * 0.027), 12px);
+    font-weight:800;
+    letter-spacing:.06em;
+    padding:3px 5px;
+    cursor:pointer;
+    white-space:nowrap;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .al-on{ min-width:3.4em; }
+  .al-on.on{ background:var(--lcd-ink); color:var(--lcd-bg-1); }
+  :root[data-theme="night"] .al-on.on{ background:transparent; color:var(--lcd-ink); box-shadow:inset 0 0 0 1px var(--lcd-ink); }
+
   .light-btn.icon-only{ padding-left:clamp(10px,2vw,13px); padding-right:clamp(10px,2vw,13px); }
   .sound-toggle .icon-on{ display:none; }
   .sound-toggle.active .icon-on{ display:block; }
@@ -678,7 +772,9 @@
     .cal-month{ min-width:0; }
     .cal-grid{ gap:2px; }
     .cal-dayname{ padding-bottom:1px; }
-    .watch-buttons{ margin-top:10px; }
+    .watch-buttons{ margin-top:8px; }
+    .rbtn .disc{ width:calc(var(--panel-width) * 0.115); }
+    .watch-buttons .rbtn{ gap:3px; }
     .light-btn{ padding:6px 12px; font-size:10px; }
     .location-label{ font-size:calc(var(--panel-width) * 0.052); margin-top:8px; }
     .seven-seg-time{ margin:6px 0 4px; }
@@ -698,6 +794,7 @@
             <span class="day-badge"><span class="live-dot"></span><span id="dayName">---</span></span>
             <div class="lang-row" id="langRow" role="group"></div>
             <span class="top-right">
+              <span class="alm-ind" id="almInd">ALM</span>
               <svg class="rain-icon" id="rainIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M4 12a8 8 0 0 1 16 0Z"/>
                 <path d="M12 12v8a2 2 0 0 1-4 0"/>
@@ -714,18 +811,24 @@
       </div>
     </div>
     <div class="watch-buttons">
-      <button class="light-btn" id="nightToggle" type="button" aria-pressed="false" data-i18n-aria="night" aria-label="Vista nocturna">
-        <svg class="light-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"/>
-        </svg>
-        <span class="light-label" data-i18n="light">LLUM</span>
+      <button class="rbtn" id="nightToggle" type="button" aria-pressed="false" data-i18n-aria="night" aria-label="Vista nocturna">
+        <span class="disc"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"/></svg></span>
+        <span class="lbl" data-i18n="light">LLUM</span>
       </button>
-      <button class="light-btn" id="speakBtn" type="button" data-i18n-aria="speak" aria-label="Digues l'hora">
-        <span class="light-label" data-i18n="speakLabel">HORA</span>
+      <button class="rbtn" id="speakBtn" type="button" data-i18n-aria="speak" aria-label="Digues l'hora">
+        <span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="12" r="7"/><path d="M10 8.5V12l2.5 2"/><path d="M19.5 9.2a4.5 4.5 0 0 1 0 5.6M22 6.8a8.5 8.5 0 0 1 0 10.4"/></svg></span>
+        <span class="lbl" data-i18n="speakLabel">HORA</span>
       </button>
-      <button class="light-btn icon-only sound-toggle" id="chimeToggle" type="button" aria-pressed="false" data-i18n-aria="chime" aria-label="Anuncia les hores en punt">
-        <svg class="light-icon icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-        <svg class="light-icon icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+      <button class="rbtn sound-toggle" id="chimeToggle" type="button" aria-pressed="false" data-i18n-aria="chime" aria-label="Anuncia les hores en punt">
+        <span class="disc">
+          <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+          <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        </span>
+        <span class="lbl" data-i18n="soundLabel">SO</span>
+      </button>
+      <button class="rbtn" id="alarmBtn" type="button" data-i18n-aria="alarmAria" aria-label="Alarmes">
+        <span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="7"/><path d="M12 9.5V13l2.2 1.8"/><path d="M5 3.5 2.5 6M19 3.5 21.5 6"/><path d="M7.5 19.5 6 21.5M16.5 19.5 18 21.5"/></svg></span>
+        <span class="lbl" id="alarmLbl" data-i18n="alarmLabel">ALARMA</span>
       </button>
     </div>
     <div class="location-label" id="placeValue">--</div>
@@ -748,6 +851,12 @@
                 </div>
               </div>
               <div class="cal-grid" id="calGrid"></div>
+            </section>
+
+            <!-- Alarmes -->
+            <section class="view view-pag" data-view="alarmes">
+              <div class="pag-head"><span class="pag-label" data-i18n="pAlarmes">ALARMES</span><span class="pag-side" data-i18n="tapChange">TOCA PER CANVIAR</span></div>
+              <div class="pag-body"><div class="alarms" id="alarmRows"></div></div>
             </section>
 
             <!-- Avisos (només quan n'hi ha) -->
@@ -908,6 +1017,7 @@ function renderTime(){
     ...String(now.getSeconds()).padStart(2,'0')
   ];
   checkHourlyChime(now);
+  checkAlarms(now);
   const order = ['a','b','c','d','e','f','g'];
   chars.forEach((ch, i) => {
     const segs = SEGMENTS[ch] || [];
@@ -1314,49 +1424,49 @@ function checkHourlyChime(now){
 
 /* ===================== TEXTOS DE LES FINESTRES (7 llengües) ===================== */
 const I18N_EXTRA = {
-  ca:{ ui:{ pAvisos:'AVISOS', pUbicacio:'UBICACIÓ', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
+  ca:{ ui:{ soundLabel:'SO', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA PER CANVIAR', everyDay:'CADA DIA', stopAlarm:'ATURA', pAvisos:'AVISOS', pUbicacio:'UBICACIÓ', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
       next12:'PROPERES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RÀF.', rRain6:'PLUJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPEU', live:'EN DIRECTE',
       noData:'SENSE DADES', radioFail:"NO S'HA POGUT SINTONITZAR", podFail:"NO S'HA POGUT CARREGAR", noNews:'NO HI HA TITULARS', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Cel serè',mainly:'Gairebé serè',partly:'Parcialment ennuvolat',overcast:'Cobert',fog:'Boira',drizzle:'Plugim',rain:'Pluja',showers:'Ruixats',freezing:'Pluja glaçada',snow:'Neu',storm:'Tempesta'},
     aq:['BONA','RAONABLE','MODERADA','DOLENTA','MOLT DOLENTA','EXTREMA'],
     alerts:{storm:'TEMPESTA',rain:'PLUJA FORTA',wind:'VENT FORT',heat:'CALOR',frost:'GLAÇADA',snow:'NEU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  oc:{ ui:{ pAvisos:'ALÈRTAS', pUbicacio:'LOC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOVÈLAS',
+  oc:{ ui:{ soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmas', pAlarmes:'ALARMAS', tapChange:'TOCA PER CAMBIAR', everyDay:'CADA JORN', stopAlarm:'ARRÈSTA', pAvisos:'ALÈRTAS', pUbicacio:'LOC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOVÈLAS',
       next12:'PRÒCHAS 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUÈJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPÈU', live:'EN DIRÈCTE',
       noData:'CAP DE DONADA', radioFail:'SE PÒT PAS SINTONIZAR', podFail:'SE PÒT PAS CARGAR', noNews:'CAP DE TÍTOL', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Cèl seren',mainly:'Gaireben seren',partly:'Mièg ennivolat',overcast:'Cobèrt',fog:'Nèbla',drizzle:'Plovina',rain:'Pluèja',showers:'Raissas',freezing:'Pluèja gelada',snow:'Nèu',storm:'Auratge'},
     aq:['BONA','CORRÈCTA','MODERADA','MARRIDA','FÒRÇA MARRIDA','EXTRÈMA'],
     alerts:{storm:'AURATGE',rain:'PLUÈJA FÒRTA',wind:'VENT FÒRT',heat:'CALOR',frost:'GEL',snow:'NÈU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  fr:{ ui:{ pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
+  fr:{ ui:{ soundLabel:'SON', alarmLabel:'RÉVEIL', alarmAria:'Réveils', pAlarmes:'RÉVEILS', tapChange:'TOUCHER POUR CHANGER', everyDay:'CHAQUE JOUR', stopAlarm:'STOP', pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
       next12:'PROCHAINES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUIE 6H', rProb:'PROB.', aqTitle:'INDICE EUROPÉEN', live:'EN DIRECT',
       noData:'PAS DE DONNÉES', radioFail:'IMPOSSIBLE DE CAPTER', podFail:'CHARGEMENT IMPOSSIBLE', noNews:'AUCUN TITRE', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Ciel dégagé',mainly:'Peu nuageux',partly:'Partiellement nuageux',overcast:'Couvert',fog:'Brouillard',drizzle:'Bruine',rain:'Pluie',showers:'Averses',freezing:'Pluie verglaçante',snow:'Neige',storm:'Orage'},
     aq:['BON','MOYEN','DÉGRADÉ','MAUVAIS','TRÈS MAUVAIS','EXTRÊME'],
     alerts:{storm:'ORAGE',rain:'FORTE PLUIE',wind:'VENT FORT',heat:'CHALEUR',frost:'GEL',snow:'NEIGE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  en:{ ui:{ pAvisos:'ALERTS', pUbicacio:'PLACE', pTemps:'WEATHER', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NEWS',
+  en:{ ui:{ soundLabel:'SOUND', alarmLabel:'ALARM', alarmAria:'Alarms', pAlarmes:'ALARMS', tapChange:'TAP TO CHANGE', everyDay:'DAILY', stopAlarm:'STOP', pAvisos:'ALERTS', pUbicacio:'PLACE', pTemps:'WEATHER', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NEWS',
       next12:'NEXT 12 H', rAlt:'ALT', rWind:'WIND', rGust:'GUST', rRain6:'RAIN 6H', rProb:'PROB.', aqTitle:'EUROPEAN INDEX', live:'LIVE',
       noData:'NO DATA', radioFail:'COULD NOT TUNE IN', podFail:'COULD NOT LOAD', noNews:'NO HEADLINES', windFoot:'WIND IN KM/H · OPEN-METEO' },
     wx:{clear:'Clear sky',mainly:'Mostly clear',partly:'Partly cloudy',overcast:'Overcast',fog:'Fog',drizzle:'Drizzle',rain:'Rain',showers:'Showers',freezing:'Freezing rain',snow:'Snow',storm:'Thunderstorm'},
     aq:['GOOD','FAIR','MODERATE','POOR','VERY POOR','EXTREME'],
     alerts:{storm:'STORM',rain:'HEAVY RAIN',wind:'STRONG WIND',heat:'HEAT',frost:'FROST',snow:'SNOW'},
     compass:['N','NE','E','SE','S','SW','W','NW'] },
-  de:{ ui:{ pAvisos:'WARNUNG', pUbicacio:'ORT', pTemps:'WETTER', pAire:'LUFT', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NACHR.',
+  de:{ ui:{ soundLabel:'TON', alarmLabel:'WECKER', alarmAria:'Wecker', pAlarmes:'WECKER', tapChange:'ZUM ÄNDERN TIPPEN', everyDay:'TÄGLICH', stopAlarm:'STOPP', pAvisos:'WARNUNG', pUbicacio:'ORT', pTemps:'WETTER', pAire:'LUFT', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NACHR.',
       next12:'NÄCHSTE 12 STD', rAlt:'HÖHE', rWind:'WIND', rGust:'BÖEN', rRain6:'REGEN 6H', rProb:'WAHRSCH.', aqTitle:'EUROP. INDEX', live:'LIVE',
       noData:'KEINE DATEN', radioFail:'KEIN EMPFANG', podFail:'LADEN FEHLGESCHLAGEN', noNews:'KEINE MELDUNGEN', windFoot:'WIND IN KM/H · OPEN-METEO' },
     wx:{clear:'Klar',mainly:'Überwiegend klar',partly:'Teilweise bewölkt',overcast:'Bedeckt',fog:'Nebel',drizzle:'Nieselregen',rain:'Regen',showers:'Schauer',freezing:'Gefrierender Regen',snow:'Schnee',storm:'Gewitter'},
     aq:['GUT','AKZEPTABEL','MÄSSIG','SCHLECHT','SEHR SCHLECHT','EXTREM'],
     alerts:{storm:'GEWITTER',rain:'STARKREGEN',wind:'STURMBÖEN',heat:'HITZE',frost:'FROST',snow:'SCHNEE'},
     compass:['N','NO','O','SO','S','SW','W','NW'] },
-  it:{ ui:{ pAvisos:'ALLERTE', pUbicacio:'LUOGO', pTemps:'METEO', pAire:'ARIA', pRadio:'RADIO', pPodcasts:'PODCAST', pNoticies:'NOTIZIE',
+  it:{ ui:{ soundLabel:'SUONO', alarmLabel:'SVEGLIA', alarmAria:'Sveglie', pAlarmes:'SVEGLIE', tapChange:'TOCCA PER CAMBIARE', everyDay:'OGNI GIORNO', stopAlarm:'STOP', pAvisos:'ALLERTE', pUbicacio:'LUOGO', pTemps:'METEO', pAire:'ARIA', pRadio:'RADIO', pPodcasts:'PODCAST', pNoticies:'NOTIZIE',
       next12:'PROSSIME 12 ORE', rAlt:'ALT', rWind:'VENTO', rGust:'RAFF.', rRain6:'PIOGGIA 6H', rProb:'PROB.', aqTitle:'INDICE EUROPEO', live:'IN DIRETTA',
       noData:'NESSUN DATO', radioFail:'IMPOSSIBILE SINTONIZZARE', podFail:'IMPOSSIBILE CARICARE', noNews:'NESSUNA NOTIZIA', windFoot:'VENTO IN KM/H · OPEN-METEO' },
     wx:{clear:'Sereno',mainly:'Poco nuvoloso',partly:'Parzialmente nuvoloso',overcast:'Coperto',fog:'Nebbia',drizzle:'Pioviggine',rain:'Pioggia',showers:'Rovesci',freezing:'Pioggia gelata',snow:'Neve',storm:'Temporale'},
     aq:['BUONA','DISCRETA','MODERATA','SCADENTE','PESSIMA','ESTREMA'],
     alerts:{storm:'TEMPORALE',rain:'PIOGGIA FORTE',wind:'VENTO FORTE',heat:'CALDO',frost:'GELO',snow:'NEVE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  pt:{ ui:{ pAvisos:'ALERTAS', pUbicacio:'LOCAL', pTemps:'TEMPO', pAire:'AR', pRadio:'RÁDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIAS',
+  pt:{ ui:{ soundLabel:'SOM', alarmLabel:'ALARME', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOQUE PARA MUDAR', everyDay:'TODOS OS DIAS', stopAlarm:'PARAR', pAvisos:'ALERTAS', pUbicacio:'LOCAL', pTemps:'TEMPO', pAire:'AR', pRadio:'RÁDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIAS',
       next12:'PRÓXIMAS 12 H', rAlt:'ALT', rWind:'VENTO', rGust:'RAJ.', rRain6:'CHUVA 6H', rProb:'PROB.', aqTitle:'ÍNDICE EUROPEU', live:'EM DIRETO',
       noData:'SEM DADOS', radioFail:'NÃO FOI POSSÍVEL SINTONIZAR', podFail:'NÃO FOI POSSÍVEL CARREGAR', noNews:'SEM TÍTULOS', windFoot:'VENTO EM KM/H · OPEN-METEO' },
     wx:{clear:'Céu limpo',mainly:'Pouco nublado',partly:'Parcialmente nublado',overcast:'Encoberto',fog:'Nevoeiro',drizzle:'Chuvisco',rain:'Chuva',showers:'Aguaceiros',freezing:'Chuva gelada',snow:'Neve',storm:'Trovoada'},
@@ -1509,12 +1619,16 @@ function setupCalNavButtons(){
 /* ===================== FINESTRES EN RODA ===================== */
 // Lliscar cap amunt: finestra següent; cap avall: l'anterior. Després de
 // l'última es torna al calendari. Els avisos només hi són quan n'hi ha.
-const VIEW_ORDER = ['cal', 'avisos', 'ubicacio', 'temps', 'aire', 'radio', 'podcasts', 'noticies'];
+const VIEW_ORDER = ['cal', 'alarmes', 'avisos', 'ubicacio', 'temps', 'aire', 'radio', 'podcasts', 'noticies'];
 let currentView = 'cal';
 let activeAlerts = [];
 let swipeHandled = false;
 
-function visibleViews(){ return VIEW_ORDER.filter(v => v !== 'avisos' || activeAlerts.length); }
+// Els podcasts (RAC1) només surten en català i occità/aranès
+const PODCAST_LANGS = ['ca', 'oc'];
+function visibleViews(){
+  return VIEW_ORDER.filter(v => (v !== 'avisos' || activeAlerts.length) && (v !== 'podcasts' || PODCAST_LANGS.includes(currentLang)));
+}
 
 function renderDots(){
   const box = document.getElementById('viewDots');
@@ -2442,6 +2556,7 @@ function applyTheme(){
 }
 function cycleDayTheme(){
   if(swipeHandled){ swipeHandled = false; return; }
+  if(ringing){ stopAlarm(); return; } // si sona una alarma, tocar la pantalla l'atura
   if(isNight) return; // de nit, tocar la pantalla no ha d'encendre colors
   dayThemeIndex = (dayThemeIndex + 1) % DAY_THEMES.length;
   try{ localStorage.setItem(THEME_STORAGE_KEY, String(dayThemeIndex)); }catch(err){}
@@ -2522,6 +2637,9 @@ function setLanguage(code){
   renderRadios();
   renderPrograms();
   if(currentView === 'noticies') loadNews(true); else newsLang = '';
+  if(!visibleViews().includes(currentView)) showView('cal', -1);
+  renderAlarms();
+  renderDots();
   if(lastCoords) fetchPlaceName(lastCoords.lat, lastCoords.lon, lastCoords.isFallback);
 }
 
@@ -2530,6 +2648,7 @@ function renderDate(){
   document.getElementById('dayName').textContent = T().days[now.getDay()];
   const dd = String(now.getDate()).padStart(2,'0');
   const mm = T().months[now.getMonth()].slice(0,3);
+  if(ringing) return; // mentre sona una alarma, la fila de la data la mostra
   document.getElementById('dateDisplay').textContent = `${dd} ${mm} ${now.getFullYear()}`;
 }
 
@@ -2542,11 +2661,176 @@ function setupVoiceButtons(){
   setChimeUI();
 }
 
+
+/* ===================== ALARMES (3 configurables) ===================== */
+const ALARM_STORAGE_KEY = 'kasioAlarms';
+const ALARM_DAYS = ['daily', 'week', 'weekend']; // cada dia · dl–dv · ds–dg
+let alarms = [
+  { on:false, time:'07:00', days:'daily' },
+  { on:false, time:'08:00', days:'week' },
+  { on:false, time:'09:00', days:'weekend' }
+];
+let ringing = null;        // { i, until, timer }
+const alarmFired = {};     // per no repetir la mateixa alarma dins el mateix minut
+
+function loadAlarms(){
+  try{
+    const s = JSON.parse(localStorage.getItem(ALARM_STORAGE_KEY) || 'null');
+    if(Array.isArray(s) && s.length === 3) alarms = s.map((a, i) => ({
+      on:!!a.on,
+      time:/^\d\d:\d\d$/.test(a.time) ? a.time : alarms[i].time,
+      days:ALARM_DAYS.includes(a.days) ? a.days : 'daily'
+    }));
+  }catch(err){}
+}
+function saveAlarms(){ try{ localStorage.setItem(ALARM_STORAGE_KEY, JSON.stringify(alarms)); }catch(err){} }
+
+function daysLabel(mode){
+  const d = T().days;
+  if(mode === 'week') return `${d[1]}–${d[5]}`;
+  if(mode === 'weekend') return `${d[6]}–${d[0]}`;
+  return T().ui.everyDay;
+}
+
+function updateAlarmIndicators(){
+  const any = alarms.some(a => a.on);
+  const ind = document.getElementById('almInd');
+  if(ind) ind.classList.toggle('on', any);
+  const btn = document.getElementById('alarmBtn');
+  if(btn){
+    btn.classList.toggle('active', any && !ringing);
+    btn.classList.toggle('ringing', !!ringing);
+  }
+  const lbl = document.getElementById('alarmLbl');
+  if(lbl) lbl.textContent = ringing ? T().ui.stopAlarm : T().ui.alarmLabel;
+}
+
+function renderAlarms(){
+  const box = document.getElementById('alarmRows');
+  if(!box) return;
+  box.innerHTML = '';
+  alarms.forEach((a, i) => {
+    const row = document.createElement('div');
+    row.className = 'alarm-row' + (a.on ? '' : ' off');
+    row.innerHTML =
+      `<span class="al-n">AL${i + 1}</span>` +
+      `<label class="al-time"><span class="al-t">${a.time}</span><input type="time" value="${a.time}" aria-label="AL${i + 1}"></label>` +
+      `<button type="button" class="al-days">${esc(daysLabel(a.days))}</button>` +
+      `<button type="button" class="al-on${a.on ? ' on' : ''}" aria-pressed="${a.on}">${a.on ? 'ON' : 'OFF'}</button>`;
+    const input = row.querySelector('input');
+    input.addEventListener('click', () => {
+      getAudioCtx();
+      try{ if(input.showPicker) input.showPicker(); }catch(err){}
+    });
+    input.addEventListener('change', () => {
+      if(!/^\d\d:\d\d/.test(input.value)) return;
+      a.time = input.value.slice(0, 5);
+      a.on = true; // canviar l'hora activa l'alarma
+      saveAlarms(); renderAlarms();
+    });
+    row.querySelector('.al-days').addEventListener('click', () => {
+      a.days = ALARM_DAYS[(ALARM_DAYS.indexOf(a.days) + 1) % ALARM_DAYS.length];
+      saveAlarms(); renderAlarms();
+    });
+    row.querySelector('.al-on').addEventListener('click', () => {
+      getAudioCtx(); // el primer toc desbloqueja el so al mòbil
+      a.on = !a.on;
+      saveAlarms(); renderAlarms();
+    });
+    box.appendChild(row);
+  });
+  updateAlarmIndicators();
+}
+
+function dayMatches(mode, dow){
+  if(mode === 'week') return dow >= 1 && dow <= 5;
+  if(mode === 'weekend') return dow === 0 || dow === 6;
+  return true;
+}
+
+// Es crida cada segon des de renderTime()
+function checkAlarms(now){
+  if(ringing){
+    if(Date.now() > ringing.until) stopAlarm();
+    return;
+  }
+  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  alarms.forEach((a, i) => {
+    if(!a.on || a.time !== hhmm || !dayMatches(a.days, now.getDay())) return;
+    const key = now.toDateString() + '-' + i + '-' + hhmm;
+    if(alarmFired[key]) return;
+    alarmFired[key] = true;
+    if(now.getSeconds() > 30) return; // la pàgina estava adormida: no sona tard
+    ringAlarm(i);
+  });
+}
+
+// So d'alarma tipus Casio: quatre xiulets curts, repetits cada segon i mig
+function playAlarmBeeps(){
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+  const t0 = ctx.currentTime + 0.03;
+  for(let k = 0; k < 4; k++){
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    const t = t0 + k * 0.13;
+    o.type = 'square';
+    o.frequency.value = 2048;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + 0.1);
+  }
+}
+
+function ringAlarm(i){
+  const a = alarms[i];
+  ringing = { i, until:Date.now() + 60 * 1000 };
+  const scr = document.getElementById('watchScreen');
+  if(scr) scr.classList.add('ringing');
+  document.getElementById('dateDisplay').textContent = `AL${i + 1} · ${a.time}`;
+  updateAlarmIndicators();
+  playAlarmBeeps();
+  let n = 0;
+  ringing.timer = setInterval(() => {
+    n++;
+    const speaking = ('speechSynthesis' in window) && window.speechSynthesis.speaking;
+    if(!speaking) playAlarmBeeps();
+    if(n === 2){ const d = new Date(); speak(timePhrase(d.getHours(), d.getMinutes())); }
+  }, 1500);
+}
+
+function stopAlarm(){
+  if(!ringing) return;
+  clearInterval(ringing.timer);
+  ringing = null;
+  try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(err){}
+  const scr = document.getElementById('watchScreen');
+  if(scr) scr.classList.remove('ringing');
+  updateAlarmIndicators();
+  renderDate();
+}
+
+function setupAlarms(){
+  loadAlarms();
+  renderAlarms();
+  const box = document.getElementById('alarmRows');
+  if(box) box.addEventListener('click', e => e.stopPropagation()); // no ha de canviar el tema
+  const btn = document.getElementById('alarmBtn');
+  if(btn) btn.addEventListener('click', e => {
+    e.stopPropagation();
+    getAudioCtx();
+    if(ringing){ stopAlarm(); return; }
+    showView('alarmes', 1);
+  });
+}
+
 /* ===================== INICI ===================== */
 initLanguage();
 buildLangButtons();
 initTheme();
 setupVoiceButtons();
+setupAlarms();
 setupScreenGestures();
 setupCalNavButtons();
 renderTime();
