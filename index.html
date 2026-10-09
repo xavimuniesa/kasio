@@ -367,31 +367,38 @@
     font-family:var(--mono);
     -webkit-tap-highlight-color:transparent;
   }
+  /* El disc del botó és una petita pantalla LCD amb el mateix color que el tema */
   .rbtn .disc{
     width:clamp(42px, calc(var(--panel-width) * 0.14), 56px);
     aspect-ratio:1;
     border-radius:50%;
     display:grid;
     place-items:center;
-    background:linear-gradient(155deg, var(--metal-1) 0%, var(--metal-2) 100%);
+    background:linear-gradient(160deg, var(--lcd-bg-1) 0%, var(--lcd-bg-2) 100%);
     box-shadow:
-      0 6px 14px -6px rgba(0,0,0,.6),
-      0 1px 0 rgba(255,255,255,.12) inset,
-      0 -2px 4px rgba(0,0,0,.4) inset;
-    transition: transform .12s ease;
+      0 0 0 3px var(--metal-1),
+      0 0 0 4.5px var(--case-2),
+      0 8px 16px -6px rgba(0,0,0,.7),
+      inset 0 2px 5px rgba(0,0,0,.35);
+    transition: transform .12s ease, background .4s ease;
   }
-  .rbtn .disc svg{ width:48%; height:48%; color:#a2a4a8; transition: color .4s ease, filter .4s ease; }
-  .rbtn .lbl{ font-size:clamp(8px, calc(var(--panel-width) * 0.026), 11px); font-weight:800; letter-spacing:.14em; }
+  .rbtn .disc svg{ width:48%; height:48%; color:var(--lcd-ink); transition: color .4s ease; }
+  .rbtn .lbl{ font-size:clamp(8px, calc(var(--panel-width) * 0.026), 11px); font-weight:800; letter-spacing:.14em; margin-top:3px; }
   .rbtn:active .disc{ transform:scale(.92); }
-  .rbtn.active .disc svg{ color:var(--accent-light); filter:drop-shadow(0 0 4px var(--accent)); }
+  /* Activat: el disc s'inverteix, com un segment encès */
+  .rbtn.active .disc{ background:var(--lcd-ink); }
+  .rbtn.active .disc svg{ color:var(--lcd-bg-1); }
   .rbtn.active .lbl{ color:var(--accent-light); }
-  .rbtn.ringing .disc{ animation:blink .6s steps(1) infinite; }
-  .rbtn.ringing .disc svg, .rbtn.ringing .lbl{ color:var(--accent-light); }
-  :root[data-theme="night"] .rbtn .disc{ box-shadow:none; }
-  :root[data-theme="night"] .rbtn .disc svg{ color:#3a2a22; }
+  .rbtn.ringing .disc{ background:var(--accent); animation:blink .6s steps(1) infinite; }
+  .rbtn.ringing .disc svg{ color:var(--lcd-bg-1); }
+  .rbtn.ringing .lbl{ color:var(--accent-light); }
+  /* De nit: discos foscos amb la icona vermella i res de blocs encesos */
+  :root[data-theme="night"] .rbtn .disc{ box-shadow:0 0 0 3px var(--metal-1), 0 0 0 4.5px var(--case-2); }
+  :root[data-theme="night"] .rbtn .disc svg{ color:var(--lcd-ink); opacity:.75; }
+  :root[data-theme="night"] .rbtn.active .disc,
+  :root[data-theme="night"] .rbtn.ringing .disc{ background:linear-gradient(160deg, var(--lcd-bg-1) 0%, var(--lcd-bg-2) 100%); box-shadow:0 0 0 2px var(--accent-light), 0 0 0 4.5px var(--case-2); }
   :root[data-theme="night"] .rbtn.active .disc svg,
-  :root[data-theme="night"] .rbtn.ringing .disc svg{ color:var(--accent); filter:none; }
-  :root[data-theme="night"] .rbtn.active .lbl{ color:var(--accent-light); }
+  :root[data-theme="night"] .rbtn.ringing .disc svg{ color:var(--accent); opacity:1; }
 
   /* Indicador ALM a la pantalla, com als Casio, quan hi ha alguna alarma activa */
   .alm-ind{ display:none; font-size:.82em; font-weight:800; letter-spacing:.06em; }
