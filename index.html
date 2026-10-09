@@ -409,7 +409,7 @@
   .alarms{ display:flex; flex-direction:column; }
   .alarm-row{
     display:grid;
-    grid-template-columns:auto 1fr auto auto;
+    grid-template-columns:auto 1fr auto auto auto;
     align-items:center;
     gap:clamp(6px,1.6vw,10px);
     padding:clamp(5px,1.3vw,9px) 2px;
@@ -419,9 +419,9 @@
   .al-n{ font-size:clamp(9px, calc(var(--panel-width) * 0.03), 13px); font-weight:800; letter-spacing:.08em; opacity:.7; }
   .al-time{
     position:relative;
-    font-size:clamp(20px, calc(var(--panel-width) * 0.085), 36px);
+    font-size:clamp(18px, calc(var(--panel-width) * 0.075), 34px);
     font-weight:800;
-    letter-spacing:.04em;
+    letter-spacing:.02em;
     font-variant-numeric:tabular-nums;
     cursor:pointer;
   }
@@ -449,6 +449,16 @@
     -webkit-tap-highlight-color:transparent;
   }
   .al-on{ min-width:3.4em; }
+  /* Botó per passar l'alarma al rellotge del mòbil */
+  .al-send{
+    appearance:none; background:transparent; border:none; padding:2px; margin:0;
+    color:var(--lcd-ink); cursor:pointer; display:grid; place-items:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .al-send svg{ width:clamp(15px, calc(var(--panel-width) * 0.055), 22px); height:auto; }
+  .al-send:active{ transform:scale(.88); }
+  .al-help{ font-size:clamp(8px, calc(var(--panel-width) * 0.026), 11px); font-weight:700; letter-spacing:.05em; line-height:1.35; opacity:.8; text-align:center; padding-top:6px; }
+  .al-help:empty{ display:none; }
   .al-on.on{ background:var(--lcd-ink); color:var(--lcd-bg-1); }
   :root[data-theme="night"] .al-on.on{ background:transparent; color:var(--lcd-ink); box-shadow:inset 0 0 0 1px var(--lcd-ink); }
 
@@ -789,6 +799,39 @@
     .location-label{ font-size:calc(var(--panel-width) * 0.052); margin-top:8px; }
     .seven-seg-time{ margin:6px 0 4px; }
   }
+  /* ============ MODE Zz (tauleta de nit) ============
+     Només el rellotge, gran i molt tènue, amb la pantalla sempre encesa
+     perquè les alarmes puguin sonar. Va al final perquè guanyi a la resta. */
+  .zz-info{ display:none; }
+  :root.zz[data-theme]{
+    --panel-width: min(92vw, 640px, calc(88vh * 2.1));
+    --digit-w: calc((var(--panel-width) - 90px) / 6.9);
+    --lcd-ink:#a8361a;
+    --lcd-ghost:rgba(168,54,26,0.035);
+    --accent:#a8361a; --accent-light:#7e2a14;
+    --metal-1:#121212; --metal-2:#0a0a0a; --metal-hi:#121212;
+    --label:#5a1d0b; --btn-text:#4d1a0a;
+  }
+  html.zz .calendar-wrap,
+  html.zz .location-label,
+  html.zz .lang-row,
+  html.zz .watch-buttons .rbtn:not(#zzBtn){ display:none; }
+  html.zz .watch{ opacity:.75; transition:transform 2.5s ease, opacity .4s ease; }
+  html.zz .zz-info{
+    display:block;
+    text-align:center;
+    color:var(--lcd-ink);
+    font-weight:800;
+    letter-spacing:.12em;
+    font-size:clamp(11px, calc(var(--panel-width) * 0.034), 20px);
+    margin-top:clamp(4px,1vw,8px);
+    opacity:.85;
+  }
+  html.zz .zz-info.tap{ animation:blink 1.4s steps(1) infinite; }
+  html.zz .lcd-date-row{ font-size:clamp(12px, calc(var(--panel-width) * 0.04), 24px); }
+  html.zz .rbtn .disc{ width:48px; }
+  html.zz #zzBtn .disc svg{ color:var(--accent); opacity:1; }
+  html.zz #zzBtn .lbl{ color:var(--lcd-ink); }
 </style>
 
 </head>
@@ -817,6 +860,7 @@
           <div class="seven-seg-time" id="timeDisplay"></div>
 
           <div class="lcd-date-row" id="dateDisplay">-- --- ----</div>
+          <div class="zz-info" id="zzInfo"></div>
         </div>
       </div>
     </div>
@@ -824,6 +868,10 @@
       <button class="rbtn" id="nightToggle" type="button" aria-pressed="false" data-i18n-aria="night" aria-label="Vista nocturna">
         <span class="disc"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"/></svg></span>
         <span class="lbl" data-i18n="light">LLUM</span>
+      </button>
+      <button class="rbtn" id="zzBtn" type="button" aria-pressed="false" data-i18n-aria="zzAria" aria-label="Mode Zz">
+        <span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5h8l-8 10h8"/><path d="M14 4h6l-6 7.5h6"/></svg></span>
+        <span class="lbl">Zz</span>
       </button>
       <button class="rbtn" id="speakBtn" type="button" data-i18n-aria="speak" aria-label="Digues l'hora">
         <span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="12" r="7"/><path d="M10 8.5V12l2.5 2"/><path d="M19.5 9.2a4.5 4.5 0 0 1 0 5.6M22 6.8a8.5 8.5 0 0 1 0 10.4"/></svg></span>
@@ -867,7 +915,7 @@
             <!-- Alarmes -->
             <section class="view view-pag" data-view="alarmes">
               <div class="pag-head"><span class="pag-label" data-i18n="pAlarmes">ALARMES</span><span class="pag-side" data-i18n="tapChange">TOCA PER CANVIAR</span></div>
-              <div class="pag-body"><div class="alarms" id="alarmRows"></div></div>
+              <div class="pag-body"><div class="alarms" id="alarmRows"></div><div class="al-help" id="alarmHelp"></div></div>
             </section>
 
             <!-- Avisos (només quan n'hi ha) -->
@@ -1029,6 +1077,7 @@ function renderTime(){
   ];
   checkHourlyChime(now);
   checkAlarms(now);
+  if(zzOn) updateZzInfo(now);
   const order = ['a','b','c','d','e','f','g'];
   chars.forEach((ch, i) => {
     const segs = SEGMENTS[ch] || [];
@@ -1451,7 +1500,7 @@ function toggleChime(){
 }
 // Es crida cada segon des de renderTime(): a cada hora en punt, xiulets + l'hora dita.
 function checkHourlyChime(now){
-  if(!chimeOn || now.getMinutes() !== 0) return;
+  if(!chimeOn || zzOn || now.getMinutes() !== 0) return; // en mode Zz no diu les hores
   const key = now.toDateString() + '-' + now.getHours();
   if(key === lastChimeKey) return;
   lastChimeKey = key;
@@ -1463,49 +1512,49 @@ function checkHourlyChime(now){
 
 /* ===================== TEXTOS DE LES FINESTRES (7 llengües) ===================== */
 const I18N_EXTRA = {
-  ca:{ ui:{ once:'UN COP', prevYear:'Any anterior', nextYear:'Any següent', today:'Torna a avui', soundLabel:'SO', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA PER CANVIAR', everyDay:'CADA DIA', stopAlarm:'ATURA', pAvisos:'AVISOS', pUbicacio:'UBICACIÓ', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
+  ca:{ ui:{ zzAria:'Mode Zz: pantalla encesa i alarmes a punt', zzNoAlarm:'SENSE ALARMA', zzTap:'TOCA LA PANTALLA', sendAlarm:'Posa-la al rellotge del mòbil', onlyPhone:'AIXÒ NOMÉS FUNCIONA DES DEL MÒBIL', iosShortcutHelp:'CAL LA DRECERA «{n}» A L\'APP DRECERES (ES CREA UN SOL COP)', once:'UN COP', prevYear:'Any anterior', nextYear:'Any següent', today:'Torna a avui', soundLabel:'SO', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA PER CANVIAR', everyDay:'CADA DIA', stopAlarm:'ATURA', pAvisos:'AVISOS', pUbicacio:'UBICACIÓ', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
       next12:'PROPERES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RÀF.', rRain6:'PLUJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPEU', live:'EN DIRECTE',
       noData:'SENSE DADES', radioFail:"NO S'HA POGUT SINTONITZAR", podFail:"NO S'HA POGUT CARREGAR", noNews:'NO HI HA TITULARS', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Cel serè',mainly:'Gairebé serè',partly:'Parcialment ennuvolat',overcast:'Cobert',fog:'Boira',drizzle:'Plugim',rain:'Pluja',showers:'Ruixats',freezing:'Pluja glaçada',snow:'Neu',storm:'Tempesta'},
     aq:['BONA','RAONABLE','MODERADA','DOLENTA','MOLT DOLENTA','EXTREMA'],
     alerts:{storm:'TEMPESTA',rain:'PLUJA FORTA',wind:'VENT FORT',heat:'CALOR',frost:'GLAÇADA',snow:'NEU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  oc:{ ui:{ once:'UN CÒP', prevYear:'An precedent', nextYear:'An seguent', today:'Tornar a uèi', soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmas', pAlarmes:'ALARMAS', tapChange:'TOCA PER CAMBIAR', everyDay:'CADA JORN', stopAlarm:'ARRÈSTA', pAvisos:'ALÈRTAS', pUbicacio:'LOC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOVÈLAS',
+  oc:{ ui:{ zzAria:'Mòde Zz: ecran atudat pas e alarmas prèstas', zzNoAlarm:'CAP D\'ALARMA', zzTap:'TOCA L\'ECRAN', sendAlarm:'Botar-la al relòtge del mobil', onlyPhone:'AQUÒ FONCIONA SONQUE DEMPUÈI LO MOBIL', iosShortcutHelp:'CAL L\'ACORCHI «{n}» DINS DRECERES (UN SOL CÒP)', once:'UN CÒP', prevYear:'An precedent', nextYear:'An seguent', today:'Tornar a uèi', soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmas', pAlarmes:'ALARMAS', tapChange:'TOCA PER CAMBIAR', everyDay:'CADA JORN', stopAlarm:'ARRÈSTA', pAvisos:'ALÈRTAS', pUbicacio:'LOC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOVÈLAS',
       next12:'PRÒCHAS 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUÈJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPÈU', live:'EN DIRÈCTE',
       noData:'CAP DE DONADA', radioFail:'SE PÒT PAS SINTONIZAR', podFail:'SE PÒT PAS CARGAR', noNews:'CAP DE TÍTOL', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Cèl seren',mainly:'Gaireben seren',partly:'Mièg ennivolat',overcast:'Cobèrt',fog:'Nèbla',drizzle:'Plovina',rain:'Pluèja',showers:'Raissas',freezing:'Pluèja gelada',snow:'Nèu',storm:'Auratge'},
     aq:['BONA','CORRÈCTA','MODERADA','MARRIDA','FÒRÇA MARRIDA','EXTRÈMA'],
     alerts:{storm:'AURATGE',rain:'PLUÈJA FÒRTA',wind:'VENT FÒRT',heat:'CALOR',frost:'GEL',snow:'NÈU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  fr:{ ui:{ once:'UNE FOIS', prevYear:'Année précédente', nextYear:'Année suivante', today:"Revenir à aujourd'hui", soundLabel:'SON', alarmLabel:'RÉVEIL', alarmAria:'Réveils', pAlarmes:'RÉVEILS', tapChange:'TOUCHER POUR CHANGER', everyDay:'CHAQUE JOUR', stopAlarm:'STOP', pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
+  fr:{ ui:{ zzAria:'Mode Zz : écran allumé et réveils prêts', zzNoAlarm:'AUCUN RÉVEIL', zzTap:'TOUCHEZ L\'ÉCRAN', sendAlarm:'L\'ajouter à l\'horloge du téléphone', onlyPhone:'NE FONCTIONNE QUE SUR LE TÉLÉPHONE', iosShortcutHelp:'IL FAUT LE RACCOURCI «{n}» DANS L\'APP RACCOURCIS (UNE SEULE FOIS)', once:'UNE FOIS', prevYear:'Année précédente', nextYear:'Année suivante', today:"Revenir à aujourd'hui", soundLabel:'SON', alarmLabel:'RÉVEIL', alarmAria:'Réveils', pAlarmes:'RÉVEILS', tapChange:'TOUCHER POUR CHANGER', everyDay:'CHAQUE JOUR', stopAlarm:'STOP', pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
       next12:'PROCHAINES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUIE 6H', rProb:'PROB.', aqTitle:'INDICE EUROPÉEN', live:'EN DIRECT',
       noData:'PAS DE DONNÉES', radioFail:'IMPOSSIBLE DE CAPTER', podFail:'CHARGEMENT IMPOSSIBLE', noNews:'AUCUN TITRE', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Ciel dégagé',mainly:'Peu nuageux',partly:'Partiellement nuageux',overcast:'Couvert',fog:'Brouillard',drizzle:'Bruine',rain:'Pluie',showers:'Averses',freezing:'Pluie verglaçante',snow:'Neige',storm:'Orage'},
     aq:['BON','MOYEN','DÉGRADÉ','MAUVAIS','TRÈS MAUVAIS','EXTRÊME'],
     alerts:{storm:'ORAGE',rain:'FORTE PLUIE',wind:'VENT FORT',heat:'CHALEUR',frost:'GEL',snow:'NEIGE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  en:{ ui:{ once:'ONCE', prevYear:'Previous year', nextYear:'Next year', today:'Back to today', soundLabel:'SOUND', alarmLabel:'ALARM', alarmAria:'Alarms', pAlarmes:'ALARMS', tapChange:'TAP TO CHANGE', everyDay:'DAILY', stopAlarm:'STOP', pAvisos:'ALERTS', pUbicacio:'PLACE', pTemps:'WEATHER', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NEWS',
+  en:{ ui:{ zzAria:'Zz mode: screen stays on, alarms ready', zzNoAlarm:'NO ALARM', zzTap:'TAP THE SCREEN', sendAlarm:'Add it to the phone clock', onlyPhone:'THIS ONLY WORKS ON THE PHONE', iosShortcutHelp:'NEEDS THE «{n}» SHORTCUT IN THE SHORTCUTS APP (SET UP ONCE)', once:'ONCE', prevYear:'Previous year', nextYear:'Next year', today:'Back to today', soundLabel:'SOUND', alarmLabel:'ALARM', alarmAria:'Alarms', pAlarmes:'ALARMS', tapChange:'TAP TO CHANGE', everyDay:'DAILY', stopAlarm:'STOP', pAvisos:'ALERTS', pUbicacio:'PLACE', pTemps:'WEATHER', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NEWS',
       next12:'NEXT 12 H', rAlt:'ALT', rWind:'WIND', rGust:'GUST', rRain6:'RAIN 6H', rProb:'PROB.', aqTitle:'EUROPEAN INDEX', live:'LIVE',
       noData:'NO DATA', radioFail:'COULD NOT TUNE IN', podFail:'COULD NOT LOAD', noNews:'NO HEADLINES', windFoot:'WIND IN KM/H · OPEN-METEO' },
     wx:{clear:'Clear sky',mainly:'Mostly clear',partly:'Partly cloudy',overcast:'Overcast',fog:'Fog',drizzle:'Drizzle',rain:'Rain',showers:'Showers',freezing:'Freezing rain',snow:'Snow',storm:'Thunderstorm'},
     aq:['GOOD','FAIR','MODERATE','POOR','VERY POOR','EXTREME'],
     alerts:{storm:'STORM',rain:'HEAVY RAIN',wind:'STRONG WIND',heat:'HEAT',frost:'FROST',snow:'SNOW'},
     compass:['N','NE','E','SE','S','SW','W','NW'] },
-  de:{ ui:{ once:'EINMAL', prevYear:'Vorheriges Jahr', nextYear:'Nächstes Jahr', today:'Zurück zu heute', soundLabel:'TON', alarmLabel:'WECKER', alarmAria:'Wecker', pAlarmes:'WECKER', tapChange:'ZUM ÄNDERN TIPPEN', everyDay:'TÄGLICH', stopAlarm:'STOPP', pAvisos:'WARNUNG', pUbicacio:'ORT', pTemps:'WETTER', pAire:'LUFT', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NACHR.',
+  de:{ ui:{ zzAria:'Zz-Modus: Bildschirm bleibt an, Wecker bereit', zzNoAlarm:'KEIN WECKER', zzTap:'BILDSCHIRM ANTIPPEN', sendAlarm:'In die Uhr-App des Handys übernehmen', onlyPhone:'FUNKTIONIERT NUR AM HANDY', iosShortcutHelp:'BRAUCHT DEN KURZBEFEHL «{n}» IN DER APP KURZBEFEHLE (EINMALIG)', once:'EINMAL', prevYear:'Vorheriges Jahr', nextYear:'Nächstes Jahr', today:'Zurück zu heute', soundLabel:'TON', alarmLabel:'WECKER', alarmAria:'Wecker', pAlarmes:'WECKER', tapChange:'ZUM ÄNDERN TIPPEN', everyDay:'TÄGLICH', stopAlarm:'STOPP', pAvisos:'WARNUNG', pUbicacio:'ORT', pTemps:'WETTER', pAire:'LUFT', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NACHR.',
       next12:'NÄCHSTE 12 STD', rAlt:'HÖHE', rWind:'WIND', rGust:'BÖEN', rRain6:'REGEN 6H', rProb:'WAHRSCH.', aqTitle:'EUROP. INDEX', live:'LIVE',
       noData:'KEINE DATEN', radioFail:'KEIN EMPFANG', podFail:'LADEN FEHLGESCHLAGEN', noNews:'KEINE MELDUNGEN', windFoot:'WIND IN KM/H · OPEN-METEO' },
     wx:{clear:'Klar',mainly:'Überwiegend klar',partly:'Teilweise bewölkt',overcast:'Bedeckt',fog:'Nebel',drizzle:'Nieselregen',rain:'Regen',showers:'Schauer',freezing:'Gefrierender Regen',snow:'Schnee',storm:'Gewitter'},
     aq:['GUT','AKZEPTABEL','MÄSSIG','SCHLECHT','SEHR SCHLECHT','EXTREM'],
     alerts:{storm:'GEWITTER',rain:'STARKREGEN',wind:'STURMBÖEN',heat:'HITZE',frost:'FROST',snow:'SCHNEE'},
     compass:['N','NO','O','SO','S','SW','W','NW'] },
-  it:{ ui:{ once:'UNA VOLTA', prevYear:'Anno precedente', nextYear:'Anno successivo', today:'Torna a oggi', soundLabel:'SUONO', alarmLabel:'SVEGLIA', alarmAria:'Sveglie', pAlarmes:'SVEGLIE', tapChange:'TOCCA PER CAMBIARE', everyDay:'OGNI GIORNO', stopAlarm:'STOP', pAvisos:'ALLERTE', pUbicacio:'LUOGO', pTemps:'METEO', pAire:'ARIA', pRadio:'RADIO', pPodcasts:'PODCAST', pNoticies:'NOTIZIE',
+  it:{ ui:{ zzAria:'Modalità Zz: schermo acceso e sveglie pronte', zzNoAlarm:'NESSUNA SVEGLIA', zzTap:'TOCCA LO SCHERMO', sendAlarm:'Aggiungila all\'orologio del telefono', onlyPhone:'FUNZIONA SOLO DAL TELEFONO', iosShortcutHelp:'SERVE LA SCORCIATOIA «{n}» NELL\'APP COMANDI RAPIDI (UNA VOLTA SOLA)', once:'UNA VOLTA', prevYear:'Anno precedente', nextYear:'Anno successivo', today:'Torna a oggi', soundLabel:'SUONO', alarmLabel:'SVEGLIA', alarmAria:'Sveglie', pAlarmes:'SVEGLIE', tapChange:'TOCCA PER CAMBIARE', everyDay:'OGNI GIORNO', stopAlarm:'STOP', pAvisos:'ALLERTE', pUbicacio:'LUOGO', pTemps:'METEO', pAire:'ARIA', pRadio:'RADIO', pPodcasts:'PODCAST', pNoticies:'NOTIZIE',
       next12:'PROSSIME 12 ORE', rAlt:'ALT', rWind:'VENTO', rGust:'RAFF.', rRain6:'PIOGGIA 6H', rProb:'PROB.', aqTitle:'INDICE EUROPEO', live:'IN DIRETTA',
       noData:'NESSUN DATO', radioFail:'IMPOSSIBILE SINTONIZZARE', podFail:'IMPOSSIBILE CARICARE', noNews:'NESSUNA NOTIZIA', windFoot:'VENTO IN KM/H · OPEN-METEO' },
     wx:{clear:'Sereno',mainly:'Poco nuvoloso',partly:'Parzialmente nuvoloso',overcast:'Coperto',fog:'Nebbia',drizzle:'Pioviggine',rain:'Pioggia',showers:'Rovesci',freezing:'Pioggia gelata',snow:'Neve',storm:'Temporale'},
     aq:['BUONA','DISCRETA','MODERATA','SCADENTE','PESSIMA','ESTREMA'],
     alerts:{storm:'TEMPORALE',rain:'PIOGGIA FORTE',wind:'VENTO FORTE',heat:'CALDO',frost:'GELO',snow:'NEVE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  pt:{ ui:{ once:'UMA VEZ', prevYear:'Ano anterior', nextYear:'Ano seguinte', today:'Voltar a hoje', soundLabel:'SOM', alarmLabel:'ALARME', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOQUE PARA MUDAR', everyDay:'TODOS OS DIAS', stopAlarm:'PARAR', pAvisos:'ALERTAS', pUbicacio:'LOCAL', pTemps:'TEMPO', pAire:'AR', pRadio:'RÁDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIAS',
+  pt:{ ui:{ zzAria:'Modo Zz: ecrã ligado e alarmes prontos', zzNoAlarm:'SEM ALARME', zzTap:'TOQUE NO ECRÃ', sendAlarm:'Pôr no relógio do telemóvel', onlyPhone:'SÓ FUNCIONA NO TELEMÓVEL', iosShortcutHelp:'É PRECISO O ATALHO «{n}» NA APP ATALHOS (CRIA-SE UMA VEZ)', once:'UMA VEZ', prevYear:'Ano anterior', nextYear:'Ano seguinte', today:'Voltar a hoje', soundLabel:'SOM', alarmLabel:'ALARME', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOQUE PARA MUDAR', everyDay:'TODOS OS DIAS', stopAlarm:'PARAR', pAvisos:'ALERTAS', pUbicacio:'LOCAL', pTemps:'TEMPO', pAire:'AR', pRadio:'RÁDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIAS',
       next12:'PRÓXIMAS 12 H', rAlt:'ALT', rWind:'VENTO', rGust:'RAJ.', rRain6:'CHUVA 6H', rProb:'PROB.', aqTitle:'ÍNDICE EUROPEU', live:'EM DIRETO',
       noData:'SEM DADOS', radioFail:'NÃO FOI POSSÍVEL SINTONIZAR', podFail:'NÃO FOI POSSÍVEL CARREGAR', noNews:'SEM TÍTULOS', windFoot:'VENTO EM KM/H · OPEN-METEO' },
     wx:{clear:'Céu limpo',mainly:'Pouco nublado',partly:'Parcialmente nublado',overcast:'Encoberto',fog:'Nevoeiro',drizzle:'Chuvisco',rain:'Chuva',showers:'Aguaceiros',freezing:'Chuva gelada',snow:'Neve',storm:'Trovoada'},
@@ -1816,12 +1865,28 @@ async function fetchPlaceName(lat, lon, isFallback){
     const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${geoLang}`);
     const d = await res.json();
     const name = d.city || d.locality || d.principalSubdivision || '';
-    const region = [...new Set([d.principalSubdivision, d.countryName].filter(x => x && x !== name))].join(' · ');
+    const region = regionLabel(d, name);
     placeState = { name, region, isFallback, failed:false };
   }catch(err){
     placeState = { name:'', region:'', isFallback, failed:true };
   }
   renderPlace();
+}
+
+// Territoris de parla catalana de l'Estat: es mostra el país (Catalunya,
+// Balears, País Valencià) i no «Espanya». El nom va en català en totes les
+// llengües, com a nom propi.
+const PAISOS_CATALANS = { 'ES-CT':'Catalunya', 'ES-IB':'Balears', 'ES-VC':'País Valencià' };
+function regionLabel(d, name){
+  let pc = PAISOS_CATALANS[String(d.principalSubdivisionCode || '').toUpperCase()];
+  if(!pc && String(d.countryCode || '').toUpperCase() === 'ES'){
+    const s = String(d.principalSubdivision || '').toLowerCase();
+    if(/catal|katal/.test(s)) pc = 'Catalunya';
+    else if(/balear/.test(s)) pc = 'Balears';
+    else if(/valenci/.test(s)) pc = 'País Valencià';
+  }
+  if(pc) return pc;
+  return [...new Set([d.principalSubdivision, d.countryName].filter(x => x && x !== name))].join(' · ');
 }
 
 // Redueix la lletra d'un text gran fins que hi capi en una línia
@@ -2591,21 +2656,23 @@ function loadNews(force){
 
 /* ===================== TEMES ===================== */
 const DAY_THEMES = ['pressec', 'sorra', 'negatiu', 'amber', 'mono'];
+let zzOn = false; // mode Zz (vegeu més avall)
 const THEME_STORAGE_KEY = 'kasioThemeV2';
 const NIGHT_STORAGE_KEY = 'casioClockNight';
 let dayThemeIndex = 0;
 let isNight = false;
 
 function applyTheme(){
-  const theme = isNight ? 'night' : DAY_THEMES[dayThemeIndex];
+  const theme = (isNight || zzOn) ? 'night' : DAY_THEMES[dayThemeIndex];
   document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.classList.toggle('zz', zzOn);
   const btn = document.getElementById('nightToggle');
   if(btn){ btn.classList.toggle('active', isNight); btn.setAttribute('aria-pressed', String(isNight)); }
 }
 function cycleDayTheme(){
   if(swipeHandled){ swipeHandled = false; return; }
   if(ringing){ stopAlarm(); return; } // si sona una alarma, tocar la pantalla l'atura
-  if(isNight) return; // de nit, tocar la pantalla no ha d'encendre colors
+  if(isNight || zzOn) return; // de nit, tocar la pantalla no ha d'encendre colors
   dayThemeIndex = (dayThemeIndex + 1) % DAY_THEMES.length;
   try{ localStorage.setItem(THEME_STORAGE_KEY, String(dayThemeIndex)); }catch(err){}
   applyTheme();
@@ -2781,6 +2848,7 @@ function unlockAlarmAudio(){
     alarmAudio.currentTime = 0;
     alarmAudio.muted = false;
     alarmAudioUnlocked = true;
+    if(zzOn) updateZzInfo();
   }).catch(() => { alarmAudio.muted = false; });
 }
 
@@ -2797,7 +2865,7 @@ function previewAlarm(){
    Si la pantalla s'apaga, el mòbil atura la pàgina i l'alarma no pot sonar. */
 let wakeLock = null;
 async function updateWakeLock(){
-  const need = alarms.some(a => a.on);
+  const need = zzOn || alarms.some(a => a.on);
   try{
     if(need && !wakeLock && 'wakeLock' in navigator && document.visibilityState === 'visible'){
       wakeLock = await navigator.wakeLock.request('screen');
@@ -2835,7 +2903,9 @@ function renderAlarms(){
       `<span class="al-n">AL${i + 1}</span>` +
       `<label class="al-time"><span class="al-t">${a.time}</span><input type="time" value="${a.time}" aria-label="AL${i + 1}"></label>` +
       `<button type="button" class="al-days">${esc(daysLabel(a.days))}</button>` +
-      `<button type="button" class="al-on${a.on ? ' on' : ''}" aria-pressed="${a.on}">${a.on ? 'ON' : 'OFF'}</button>`;
+      `<button type="button" class="al-on${a.on ? ' on' : ''}" aria-pressed="${a.on}">${a.on ? 'ON' : 'OFF'}</button>` +
+      `<button type="button" class="al-send" aria-label="${esc(T().ui.sendAlarm)}" title="${esc(T().ui.sendAlarm)}">` +
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>`;
     const input = row.querySelector('input');
     input.addEventListener('click', () => {
       unlockAlarmAudio();
@@ -2852,6 +2922,7 @@ function renderAlarms(){
       a.days = ALARM_DAYS[(ALARM_DAYS.indexOf(a.days) + 1) % ALARM_DAYS.length];
       saveAlarms(); renderAlarms();
     });
+    row.querySelector('.al-send').addEventListener('click', () => sendToPhoneClock(i));
     row.querySelector('.al-on').addEventListener('click', () => {
       a.on = !a.on;
       if(a.on){ clearFired(i); previewAlarm(); } // en activar-la, se sent un cop: així se sap que el so funciona
@@ -2864,6 +2935,36 @@ function renderAlarms(){
 
 function clearFired(i){
   Object.keys(alarmFired).forEach(k => { if(k.split('|')[1] === String(i)) delete alarmFired[k]; });
+}
+
+
+/* ---- Passar l'alarma al rellotge del mòbil ----
+   Una pàgina web no pot sonar amb el mòbil bloquejat; el rellotge del mòbil sí.
+   - iPhone/iPad: obre la drecera «Kasio alarma» (app Dreceres), que rep l'hora
+     com a text i crea l'alarma al Rellotge. La drecera es crea un sol cop.
+   - Android: obre l'app Rellotge amb l'alarma ja omplerta. */
+const IOS_SHORTCUT_NAME = 'Kasio alarma';
+function isIOS(){
+  return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function isAndroid(){ return /Android/i.test(navigator.userAgent); }
+
+function sendToPhoneClock(i){
+  const a = alarms[i];
+  const [hh, mm] = a.time.split(':').map(Number);
+  const help = document.getElementById('alarmHelp');
+  if(isIOS()){
+    if(help) help.textContent = T().ui.iosShortcutHelp.replace('{n}', IOS_SHORTCUT_NAME);
+    location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(IOS_SHORTCUT_NAME)}&input=text&text=${encodeURIComponent(a.time)}`;
+  } else if(isAndroid()){
+    if(help) help.textContent = '';
+    const msg = encodeURIComponent(`Kasio AL${i + 1}`);
+    location.href = `intent:#Intent;action=android.intent.action.SET_ALARM;` +
+      `i.android.intent.extra.alarm.HOUR=${hh};i.android.intent.extra.alarm.MINUTES=${mm};` +
+      `S.android.intent.extra.alarm.MESSAGE=${msg};end`;
+  } else {
+    if(help) help.textContent = T().ui.onlyPhone;
+  }
 }
 
 function dayMatches(mode, dow){
@@ -2966,9 +3067,91 @@ function setupAlarms(){
     unlockAlarmAudio();
     showView('alarmes', 1);
   });
+  // Mentre sona una alarma, un toc a qualsevol lloc l'atura (i no fa res més)
+  document.addEventListener('click', e => {
+    if(!ringing) return;
+    stopAlarm();
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }, true);
   // El primer toc a qualsevol lloc deixa el so i la pantalla encesa a punt
   ['click', 'touchend'].forEach(ev => document.addEventListener(ev, () => { unlockAlarmAudio(); updateWakeLock(); }, { capture:true, passive:true }));
   updateWakeLock();
+}
+
+
+/* ===================== MODE Zz ===================== */
+// Per deixar el mòbil a la tauleta de nit: només el rellotge, gran i molt
+// tènue; la pantalla no s'apaga, l'app queda oberta i les alarmes poden
+// sonar. No diu les hores en punt. Es surt tocant el botó Zz.
+const ZZ_STORAGE_KEY = 'kasioZz';
+
+function nextAlarm(now){
+  let best = null;
+  alarms.forEach((a, i) => {
+    if(!a.on) return;
+    const [hh, mm] = a.time.split(':').map(Number);
+    for(let d = 0; d < 8; d++){
+      const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, hh, mm, 0);
+      if(t <= now || !dayMatches(a.days, t.getDay())) continue;
+      if(!best || t < best.t) best = { i, t, a };
+      break;
+    }
+  });
+  return best;
+}
+
+function updateZzInfo(now){
+  const el = document.getElementById('zzInfo');
+  if(!el) return;
+  now = now || new Date();
+  const u = T().ui;
+  let txt, tap = false;
+  if(!alarmAudioUnlocked && alarms.some(a => a.on)){ txt = u.zzTap; tap = true; }
+  else{
+    const n = nextAlarm(now);
+    if(!n) txt = u.zzNoAlarm;
+    else{
+      const sameDay = n.t.toDateString() === now.toDateString();
+      txt = `ALM ${sameDay ? '' : T().days[n.t.getDay()] + ' '}${n.a.time}`;
+    }
+  }
+  if(el.textContent !== txt) el.textContent = txt;
+  el.classList.toggle('tap', tap);
+  // Petit desplaçament cada minut, perquè la imatge no quedi fixa tota la nit
+  if(now.getSeconds() === 0){
+    const w = document.querySelector('.watch');
+    if(w) w.style.transform = `translate(${Math.round(Math.random() * 16 - 8)}px, ${Math.round(Math.random() * 16 - 8)}px)`;
+  }
+}
+
+function setZz(on){
+  zzOn = !!on;
+  try{ localStorage.setItem(ZZ_STORAGE_KEY, zzOn ? '1' : '0'); }catch(err){}
+  const btn = document.getElementById('zzBtn');
+  if(btn){ btn.classList.toggle('active', zzOn); btn.setAttribute('aria-pressed', String(zzOn)); }
+  if(zzOn){
+    hideHolidayPopup();
+    if(currentView !== 'cal') showView('cal', -1);
+  } else {
+    const w = document.querySelector('.watch');
+    if(w) w.style.transform = '';
+  }
+  applyTheme();
+  updateZzInfo();
+  updateWakeLock();
+}
+
+function setupZz(){
+  const btn = document.getElementById('zzBtn');
+  if(btn) btn.addEventListener('click', e => {
+    e.stopPropagation();
+    unlockAlarmAudio(); // el toc d'entrada deixa el so de l'alarma a punt
+    setZz(!zzOn);
+  });
+  let saved = false;
+  try{ saved = localStorage.getItem(ZZ_STORAGE_KEY) === '1'; }catch(err){}
+  if(saved) setZz(true);
 }
 
 /* ===================== INICI ===================== */
@@ -2977,6 +3160,7 @@ buildLangButtons();
 initTheme();
 setupVoiceButtons();
 setupAlarms();
+setupZz();
 setupScreenGestures();
 setupCalNavButtons();
 renderTime();
