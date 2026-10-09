@@ -527,7 +527,10 @@
     text-overflow:ellipsis;
     min-width:0;
   }
-  .cal-nav{ display:flex; align-items:baseline; gap:clamp(6px,1.6vw,11px); }
+  .cal-nav{ display:flex; align-items:baseline; justify-content:space-between; width:100%; gap:clamp(2px,1vw,8px); }
+  .cal-month{ cursor:default; }
+  .cal-month.away{ cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; }
+  .cal-arrow.yr{ opacity:.55; }
   .cal-month{
     font-size:clamp(13px, calc(var(--panel-width) * 0.042), 17px);
     font-weight:800;
@@ -850,11 +853,12 @@
             <!-- 0 · Calendari (sempre 6 setmanes: fixa la mida de la pantalla) -->
             <section class="view view-cal on" data-view="cal">
               <div class="cal-header">
-                <span class="cal-label" data-i18n="cal">CAL</span>
                 <div class="cal-nav">
+                  <button class="cal-arrow yr" id="calPrevY" type="button" data-i18n-aria="prevYear" aria-label="Any anterior">&#171;</button>
                   <button class="cal-arrow" id="calPrev" type="button" data-i18n-aria="prev" aria-label="Mes anterior">&#8249;</button>
-                  <span class="cal-month" id="calMonth">-- ----</span>
+                  <span class="cal-month" id="calMonth" role="button" tabindex="0" data-i18n-aria="today" aria-label="Torna a avui">-- ----</span>
                   <button class="cal-arrow" id="calNext" type="button" data-i18n-aria="next" aria-label="Mes següent">&#8250;</button>
+                  <button class="cal-arrow yr" id="calNextY" type="button" data-i18n-aria="nextYear" aria-label="Any següent">&#187;</button>
                 </div>
               </div>
               <div class="cal-grid" id="calGrid"></div>
@@ -1312,8 +1316,36 @@ const FESTIUS = {
   }
 };
 
+/* Calendari perpetu: per a qualsevol any es calculen els festius de Barcelona
+   per regla —les dates fixes, Divendres Sant i Dilluns de Pasqua a partir de
+   la data de Pasqua, i les dues festes locals habituals de la ciutat (Segona
+   Pasqua, 50 dies després de Pasqua, i la Mercè, el 24 de setembre). La taula
+   FESTIUS de dalt, amb les dates oficials verificades, té prioritat. Abans de
+   1983 (calendari laboral català actual) no es marquen festius. */
+function easterSunday(y){
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, month - 1, day);
+}
+const mmdd = d => `${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const festiusCache = {};
 function getFestius(year){
-  return FESTIUS[year] || {};
+  if(year < 1983) return {};
+  if(festiusCache[year]) return festiusCache[year];
+  const out = {
+    '01-01':'capdany', '01-06':'reis', '05-01':'treball', '06-24':'santJoan', '08-15':'assumpcio',
+    '09-11':'diada', '09-24':'merce', '10-12':'hispanitat', '11-01':'totsSants', '12-06':'constitucio',
+    '12-08':'immaculada', '12-25':'nadal', '12-26':'santEsteve'
+  };
+  const easter = easterSunday(year);
+  const plus = n => new Date(easter.getFullYear(), easter.getMonth(), easter.getDate() + n);
+  out[mmdd(plus(-2))] = 'divSant';
+  out[mmdd(plus(1))] = 'dillPasqua';
+  out[mmdd(plus(50))] = 'pasquaGranada';
+  return (festiusCache[year] = Object.assign(out, FESTIUS[year] || {}));
 }
 
 /* ===================== VEU I AVÍS DE LES HORES ===================== */
@@ -1431,49 +1463,49 @@ function checkHourlyChime(now){
 
 /* ===================== TEXTOS DE LES FINESTRES (7 llengües) ===================== */
 const I18N_EXTRA = {
-  ca:{ ui:{ soundLabel:'SO', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA PER CANVIAR', everyDay:'CADA DIA', stopAlarm:'ATURA', pAvisos:'AVISOS', pUbicacio:'UBICACIÓ', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
+  ca:{ ui:{ once:'UN COP', prevYear:'Any anterior', nextYear:'Any següent', today:'Torna a avui', soundLabel:'SO', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA PER CANVIAR', everyDay:'CADA DIA', stopAlarm:'ATURA', pAvisos:'AVISOS', pUbicacio:'UBICACIÓ', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
       next12:'PROPERES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RÀF.', rRain6:'PLUJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPEU', live:'EN DIRECTE',
       noData:'SENSE DADES', radioFail:"NO S'HA POGUT SINTONITZAR", podFail:"NO S'HA POGUT CARREGAR", noNews:'NO HI HA TITULARS', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Cel serè',mainly:'Gairebé serè',partly:'Parcialment ennuvolat',overcast:'Cobert',fog:'Boira',drizzle:'Plugim',rain:'Pluja',showers:'Ruixats',freezing:'Pluja glaçada',snow:'Neu',storm:'Tempesta'},
     aq:['BONA','RAONABLE','MODERADA','DOLENTA','MOLT DOLENTA','EXTREMA'],
     alerts:{storm:'TEMPESTA',rain:'PLUJA FORTA',wind:'VENT FORT',heat:'CALOR',frost:'GLAÇADA',snow:'NEU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  oc:{ ui:{ soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmas', pAlarmes:'ALARMAS', tapChange:'TOCA PER CAMBIAR', everyDay:'CADA JORN', stopAlarm:'ARRÈSTA', pAvisos:'ALÈRTAS', pUbicacio:'LOC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOVÈLAS',
+  oc:{ ui:{ once:'UN CÒP', prevYear:'An precedent', nextYear:'An seguent', today:'Tornar a uèi', soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmas', pAlarmes:'ALARMAS', tapChange:'TOCA PER CAMBIAR', everyDay:'CADA JORN', stopAlarm:'ARRÈSTA', pAvisos:'ALÈRTAS', pUbicacio:'LOC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOVÈLAS',
       next12:'PRÒCHAS 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUÈJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPÈU', live:'EN DIRÈCTE',
       noData:'CAP DE DONADA', radioFail:'SE PÒT PAS SINTONIZAR', podFail:'SE PÒT PAS CARGAR', noNews:'CAP DE TÍTOL', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Cèl seren',mainly:'Gaireben seren',partly:'Mièg ennivolat',overcast:'Cobèrt',fog:'Nèbla',drizzle:'Plovina',rain:'Pluèja',showers:'Raissas',freezing:'Pluèja gelada',snow:'Nèu',storm:'Auratge'},
     aq:['BONA','CORRÈCTA','MODERADA','MARRIDA','FÒRÇA MARRIDA','EXTRÈMA'],
     alerts:{storm:'AURATGE',rain:'PLUÈJA FÒRTA',wind:'VENT FÒRT',heat:'CALOR',frost:'GEL',snow:'NÈU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  fr:{ ui:{ soundLabel:'SON', alarmLabel:'RÉVEIL', alarmAria:'Réveils', pAlarmes:'RÉVEILS', tapChange:'TOUCHER POUR CHANGER', everyDay:'CHAQUE JOUR', stopAlarm:'STOP', pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
+  fr:{ ui:{ once:'UNE FOIS', prevYear:'Année précédente', nextYear:'Année suivante', today:"Revenir à aujourd'hui", soundLabel:'SON', alarmLabel:'RÉVEIL', alarmAria:'Réveils', pAlarmes:'RÉVEILS', tapChange:'TOUCHER POUR CHANGER', everyDay:'CHAQUE JOUR', stopAlarm:'STOP', pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
       next12:'PROCHAINES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUIE 6H', rProb:'PROB.', aqTitle:'INDICE EUROPÉEN', live:'EN DIRECT',
       noData:'PAS DE DONNÉES', radioFail:'IMPOSSIBLE DE CAPTER', podFail:'CHARGEMENT IMPOSSIBLE', noNews:'AUCUN TITRE', windFoot:'VENT EN KM/H · OPEN-METEO' },
     wx:{clear:'Ciel dégagé',mainly:'Peu nuageux',partly:'Partiellement nuageux',overcast:'Couvert',fog:'Brouillard',drizzle:'Bruine',rain:'Pluie',showers:'Averses',freezing:'Pluie verglaçante',snow:'Neige',storm:'Orage'},
     aq:['BON','MOYEN','DÉGRADÉ','MAUVAIS','TRÈS MAUVAIS','EXTRÊME'],
     alerts:{storm:'ORAGE',rain:'FORTE PLUIE',wind:'VENT FORT',heat:'CHALEUR',frost:'GEL',snow:'NEIGE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  en:{ ui:{ soundLabel:'SOUND', alarmLabel:'ALARM', alarmAria:'Alarms', pAlarmes:'ALARMS', tapChange:'TAP TO CHANGE', everyDay:'DAILY', stopAlarm:'STOP', pAvisos:'ALERTS', pUbicacio:'PLACE', pTemps:'WEATHER', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NEWS',
+  en:{ ui:{ once:'ONCE', prevYear:'Previous year', nextYear:'Next year', today:'Back to today', soundLabel:'SOUND', alarmLabel:'ALARM', alarmAria:'Alarms', pAlarmes:'ALARMS', tapChange:'TAP TO CHANGE', everyDay:'DAILY', stopAlarm:'STOP', pAvisos:'ALERTS', pUbicacio:'PLACE', pTemps:'WEATHER', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NEWS',
       next12:'NEXT 12 H', rAlt:'ALT', rWind:'WIND', rGust:'GUST', rRain6:'RAIN 6H', rProb:'PROB.', aqTitle:'EUROPEAN INDEX', live:'LIVE',
       noData:'NO DATA', radioFail:'COULD NOT TUNE IN', podFail:'COULD NOT LOAD', noNews:'NO HEADLINES', windFoot:'WIND IN KM/H · OPEN-METEO' },
     wx:{clear:'Clear sky',mainly:'Mostly clear',partly:'Partly cloudy',overcast:'Overcast',fog:'Fog',drizzle:'Drizzle',rain:'Rain',showers:'Showers',freezing:'Freezing rain',snow:'Snow',storm:'Thunderstorm'},
     aq:['GOOD','FAIR','MODERATE','POOR','VERY POOR','EXTREME'],
     alerts:{storm:'STORM',rain:'HEAVY RAIN',wind:'STRONG WIND',heat:'HEAT',frost:'FROST',snow:'SNOW'},
     compass:['N','NE','E','SE','S','SW','W','NW'] },
-  de:{ ui:{ soundLabel:'TON', alarmLabel:'WECKER', alarmAria:'Wecker', pAlarmes:'WECKER', tapChange:'ZUM ÄNDERN TIPPEN', everyDay:'TÄGLICH', stopAlarm:'STOPP', pAvisos:'WARNUNG', pUbicacio:'ORT', pTemps:'WETTER', pAire:'LUFT', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NACHR.',
+  de:{ ui:{ once:'EINMAL', prevYear:'Vorheriges Jahr', nextYear:'Nächstes Jahr', today:'Zurück zu heute', soundLabel:'TON', alarmLabel:'WECKER', alarmAria:'Wecker', pAlarmes:'WECKER', tapChange:'ZUM ÄNDERN TIPPEN', everyDay:'TÄGLICH', stopAlarm:'STOPP', pAvisos:'WARNUNG', pUbicacio:'ORT', pTemps:'WETTER', pAire:'LUFT', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NACHR.',
       next12:'NÄCHSTE 12 STD', rAlt:'HÖHE', rWind:'WIND', rGust:'BÖEN', rRain6:'REGEN 6H', rProb:'WAHRSCH.', aqTitle:'EUROP. INDEX', live:'LIVE',
       noData:'KEINE DATEN', radioFail:'KEIN EMPFANG', podFail:'LADEN FEHLGESCHLAGEN', noNews:'KEINE MELDUNGEN', windFoot:'WIND IN KM/H · OPEN-METEO' },
     wx:{clear:'Klar',mainly:'Überwiegend klar',partly:'Teilweise bewölkt',overcast:'Bedeckt',fog:'Nebel',drizzle:'Nieselregen',rain:'Regen',showers:'Schauer',freezing:'Gefrierender Regen',snow:'Schnee',storm:'Gewitter'},
     aq:['GUT','AKZEPTABEL','MÄSSIG','SCHLECHT','SEHR SCHLECHT','EXTREM'],
     alerts:{storm:'GEWITTER',rain:'STARKREGEN',wind:'STURMBÖEN',heat:'HITZE',frost:'FROST',snow:'SCHNEE'},
     compass:['N','NO','O','SO','S','SW','W','NW'] },
-  it:{ ui:{ soundLabel:'SUONO', alarmLabel:'SVEGLIA', alarmAria:'Sveglie', pAlarmes:'SVEGLIE', tapChange:'TOCCA PER CAMBIARE', everyDay:'OGNI GIORNO', stopAlarm:'STOP', pAvisos:'ALLERTE', pUbicacio:'LUOGO', pTemps:'METEO', pAire:'ARIA', pRadio:'RADIO', pPodcasts:'PODCAST', pNoticies:'NOTIZIE',
+  it:{ ui:{ once:'UNA VOLTA', prevYear:'Anno precedente', nextYear:'Anno successivo', today:'Torna a oggi', soundLabel:'SUONO', alarmLabel:'SVEGLIA', alarmAria:'Sveglie', pAlarmes:'SVEGLIE', tapChange:'TOCCA PER CAMBIARE', everyDay:'OGNI GIORNO', stopAlarm:'STOP', pAvisos:'ALLERTE', pUbicacio:'LUOGO', pTemps:'METEO', pAire:'ARIA', pRadio:'RADIO', pPodcasts:'PODCAST', pNoticies:'NOTIZIE',
       next12:'PROSSIME 12 ORE', rAlt:'ALT', rWind:'VENTO', rGust:'RAFF.', rRain6:'PIOGGIA 6H', rProb:'PROB.', aqTitle:'INDICE EUROPEO', live:'IN DIRETTA',
       noData:'NESSUN DATO', radioFail:'IMPOSSIBILE SINTONIZZARE', podFail:'IMPOSSIBILE CARICARE', noNews:'NESSUNA NOTIZIA', windFoot:'VENTO IN KM/H · OPEN-METEO' },
     wx:{clear:'Sereno',mainly:'Poco nuvoloso',partly:'Parzialmente nuvoloso',overcast:'Coperto',fog:'Nebbia',drizzle:'Pioviggine',rain:'Pioggia',showers:'Rovesci',freezing:'Pioggia gelata',snow:'Neve',storm:'Temporale'},
     aq:['BUONA','DISCRETA','MODERATA','SCADENTE','PESSIMA','ESTREMA'],
     alerts:{storm:'TEMPORALE',rain:'PIOGGIA FORTE',wind:'VENTO FORTE',heat:'CALDO',frost:'GELO',snow:'NEVE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  pt:{ ui:{ soundLabel:'SOM', alarmLabel:'ALARME', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOQUE PARA MUDAR', everyDay:'TODOS OS DIAS', stopAlarm:'PARAR', pAvisos:'ALERTAS', pUbicacio:'LOCAL', pTemps:'TEMPO', pAire:'AR', pRadio:'RÁDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIAS',
+  pt:{ ui:{ once:'UMA VEZ', prevYear:'Ano anterior', nextYear:'Ano seguinte', today:'Voltar a hoje', soundLabel:'SOM', alarmLabel:'ALARME', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOQUE PARA MUDAR', everyDay:'TODOS OS DIAS', stopAlarm:'PARAR', pAvisos:'ALERTAS', pUbicacio:'LOCAL', pTemps:'TEMPO', pAire:'AR', pRadio:'RÁDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIAS',
       next12:'PRÓXIMAS 12 H', rAlt:'ALT', rWind:'VENTO', rGust:'RAJ.', rRain6:'CHUVA 6H', rProb:'PROB.', aqTitle:'ÍNDICE EUROPEU', live:'EM DIRETO',
       noData:'SEM DADOS', radioFail:'NÃO FOI POSSÍVEL SINTONIZAR', podFail:'NÃO FOI POSSÍVEL CARREGAR', noNews:'SEM TÍTULOS', windFoot:'VENTO EM KM/H · OPEN-METEO' },
     wx:{clear:'Céu limpo',mainly:'Pouco nublado',partly:'Parcialmente nublado',overcast:'Encoberto',fog:'Nevoeiro',drizzle:'Chuvisco',rain:'Chuva',showers:'Aguaceiros',freezing:'Chuva gelada',snow:'Neve',storm:'Trovoada'},
@@ -1601,26 +1633,35 @@ function bounceCalendar(direction){
   setTimeout(() => { grid.style.transform = 'translateX(0)'; }, 140);
 }
 
+// Sense límit: endavant i enrere tant com es vulgui (±12 = un any)
 function navigateMonth(direction){
-  const next = calendarMonthOffset + direction;
-  if(next < -2 || next > 2){ bounceCalendar(direction); return; }
-  calendarMonthOffset = next;
+  calendarMonthOffset += direction;
   buildCalendar(direction);
+  updateCalNavButtons();
+}
+function goToToday(){
+  if(calendarMonthOffset === 0) return;
+  const dir = calendarMonthOffset > 0 ? -1 : 1;
+  calendarMonthOffset = 0;
+  buildCalendar(dir);
   updateCalNavButtons();
 }
 
 function updateCalNavButtons(){
-  const prevBtn = document.getElementById('calPrev');
-  const nextBtn = document.getElementById('calNext');
-  if(prevBtn) prevBtn.disabled = calendarMonthOffset <= -2;
-  if(nextBtn) nextBtn.disabled = calendarMonthOffset >= 2;
+  // Quan no es veu el mes actual, el títol es pot tocar per tornar-hi
+  const t = document.getElementById('calMonth');
+  if(t) t.classList.toggle('away', calendarMonthOffset !== 0);
 }
 
 function setupCalNavButtons(){
-  const prevBtn = document.getElementById('calPrev');
-  const nextBtn = document.getElementById('calNext');
-  if(prevBtn) prevBtn.addEventListener('click', e => { e.stopPropagation(); navigateMonth(-1); });
-  if(nextBtn) nextBtn.addEventListener('click', e => { e.stopPropagation(); navigateMonth(1); });
+  const bind = (id, fn) => { const el = document.getElementById(id); if(el) el.addEventListener('click', e => { e.stopPropagation(); fn(); }); };
+  bind('calPrev', () => navigateMonth(-1));
+  bind('calNext', () => navigateMonth(1));
+  bind('calPrevY', () => navigateMonth(-12));
+  bind('calNextY', () => navigateMonth(12));
+  bind('calMonth', goToToday);
+  const t = document.getElementById('calMonth');
+  if(t) t.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goToToday(); } });
 }
 
 /* ===================== FINESTRES EN RODA ===================== */
@@ -2671,14 +2712,16 @@ function setupVoiceButtons(){
 
 /* ===================== ALARMES (3 configurables) ===================== */
 const ALARM_STORAGE_KEY = 'kasioAlarms';
-const ALARM_DAYS = ['daily', 'week', 'weekend']; // cada dia · dl–dv · ds–dg
+// un cop · cada dia · dl–dv · ds–dg
+const ALARM_DAYS = ['once', 'daily', 'week', 'weekend'];
 let alarms = [
-  { on:false, time:'07:00', days:'daily' },
-  { on:false, time:'08:00', days:'week' },
-  { on:false, time:'09:00', days:'weekend' }
+  { on:false, time:'07:00', days:'week' },
+  { on:false, time:'08:00', days:'daily' },
+  { on:false, time:'09:00', days:'once' }
 ];
 let ringing = null;        // { i, until, timer }
-const alarmFired = {};     // per no repetir la mateixa alarma dins el mateix minut
+const alarmFired = {};     // per no repetir la mateixa alarma el mateix dia
+const ALARM_GRACE_MS = 3 * 60 * 1000; // si el mòbil ha frenat la pàgina, encara sona fins a 3 min tard
 
 function loadAlarms(){
   try{
@@ -2694,10 +2737,79 @@ function saveAlarms(){ try{ localStorage.setItem(ALARM_STORAGE_KEY, JSON.stringi
 
 function daysLabel(mode){
   const d = T().days;
+  if(mode === 'once') return T().ui.once;
   if(mode === 'week') return `${d[1]}–${d[5]}`;
   if(mode === 'weekend') return `${d[6]}–${d[0]}`;
   return T().ui.everyDay;
 }
+
+/* ---- So de l'alarma ----
+   Es fa amb un fitxer de so (WAV generat aquí mateix) i no amb el sintetitzador
+   del navegador: a l'iPhone, el sintetitzador queda mut amb l'interruptor de
+   silenci i es bloqueja si la pàgina porta estona sense tocar-se; un fitxer
+   de so, un cop "desbloquejat" amb un toc, pot sonar més tard sense tocar res. */
+function makeAlarmWav(){
+  const sr = 16000, dur = 1.2, n = Math.floor(sr * dur);
+  const buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, s) => { for(let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n * 2, true);
+  for(let i = 0; i < n; i++){
+    const t = i / sr, k = Math.floor(t / 0.13);
+    const on = k < 4 && (t - k * 0.13) < 0.08;           // quatre xiulets curts, com un Casio
+    const s = on ? (Math.sin(2 * Math.PI * 2048 * t) >= 0 ? 0.42 : -0.42) : 0;
+    v.setInt16(44 + i * 2, s * 32767, true);
+  }
+  return URL.createObjectURL(new Blob([buf], { type:'audio/wav' }));
+}
+const alarmAudio = new Audio();
+alarmAudio.src = makeAlarmWav();
+alarmAudio.preload = 'auto';
+let alarmAudioUnlocked = false;
+
+// Qualsevol toc a la pàgina deixa el so preparat per quan calgui
+function unlockAlarmAudio(){
+  getAudioCtx();
+  if(alarmAudioUnlocked || ringing) return;
+  alarmAudio.muted = true;
+  alarmAudio.loop = false;
+  const p = alarmAudio.play();
+  if(p && p.then) p.then(() => {
+    alarmAudio.pause();
+    alarmAudio.currentTime = 0;
+    alarmAudio.muted = false;
+    alarmAudioUnlocked = true;
+  }).catch(() => { alarmAudio.muted = false; });
+}
+
+function previewAlarm(){
+  if(ringing) return;
+  alarmAudio.muted = false;
+  alarmAudio.loop = false;
+  alarmAudio.currentTime = 0;
+  const p = alarmAudio.play();
+  if(p && p.then) p.then(() => { alarmAudioUnlocked = true; }).catch(() => {});
+}
+
+/* ---- Pantalla encesa mentre hi hagi alarmes ----
+   Si la pantalla s'apaga, el mòbil atura la pàgina i l'alarma no pot sonar. */
+let wakeLock = null;
+async function updateWakeLock(){
+  const need = alarms.some(a => a.on);
+  try{
+    if(need && !wakeLock && 'wakeLock' in navigator && document.visibilityState === 'visible'){
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if(!need && wakeLock){
+      const wl = wakeLock; wakeLock = null; await wl.release();
+    }
+  }catch(err){ wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible'){ updateWakeLock(); checkAlarms(new Date()); }
+});
 
 function updateAlarmIndicators(){
   const any = alarms.some(a => a.on);
@@ -2726,53 +2838,63 @@ function renderAlarms(){
       `<button type="button" class="al-on${a.on ? ' on' : ''}" aria-pressed="${a.on}">${a.on ? 'ON' : 'OFF'}</button>`;
     const input = row.querySelector('input');
     input.addEventListener('click', () => {
-      getAudioCtx();
+      unlockAlarmAudio();
       try{ if(input.showPicker) input.showPicker(); }catch(err){}
     });
     input.addEventListener('change', () => {
       if(!/^\d\d:\d\d/.test(input.value)) return;
       a.time = input.value.slice(0, 5);
       a.on = true; // canviar l'hora activa l'alarma
-      saveAlarms(); renderAlarms();
+      clearFired(i);
+      saveAlarms(); renderAlarms(); updateWakeLock();
     });
     row.querySelector('.al-days').addEventListener('click', () => {
       a.days = ALARM_DAYS[(ALARM_DAYS.indexOf(a.days) + 1) % ALARM_DAYS.length];
       saveAlarms(); renderAlarms();
     });
     row.querySelector('.al-on').addEventListener('click', () => {
-      getAudioCtx(); // el primer toc desbloqueja el so al mòbil
       a.on = !a.on;
-      saveAlarms(); renderAlarms();
+      if(a.on){ clearFired(i); previewAlarm(); } // en activar-la, se sent un cop: així se sap que el so funciona
+      saveAlarms(); renderAlarms(); updateWakeLock();
     });
     box.appendChild(row);
   });
   updateAlarmIndicators();
 }
 
+function clearFired(i){
+  Object.keys(alarmFired).forEach(k => { if(k.split('|')[1] === String(i)) delete alarmFired[k]; });
+}
+
 function dayMatches(mode, dow){
   if(mode === 'week') return dow >= 1 && dow <= 5;
   if(mode === 'weekend') return dow === 0 || dow === 6;
-  return true;
+  return true; // un cop i cada dia
 }
 
-// Es crida cada segon des de renderTime()
+// Es crida cada segon des de renderTime(), i també en tornar a la pàgina
 function checkAlarms(now){
   if(ringing){
     if(Date.now() > ringing.until) stopAlarm();
     return;
   }
-  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  alarms.forEach((a, i) => {
-    if(!a.on || a.time !== hhmm || !dayMatches(a.days, now.getDay())) return;
-    const key = now.toDateString() + '-' + i + '-' + hhmm;
-    if(alarmFired[key]) return;
+  for(let i = 0; i < alarms.length; i++){
+    const a = alarms[i];
+    if(!a.on || !dayMatches(a.days, now.getDay())) continue;
+    const [hh, mm] = a.time.split(':').map(Number);
+    const at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0);
+    const late = now - at;
+    if(late < 0 || late > ALARM_GRACE_MS) continue;
+    const key = now.toDateString() + '|' + i + '|' + a.time;
+    if(alarmFired[key]) continue;
     alarmFired[key] = true;
-    if(now.getSeconds() > 30) return; // la pàgina estava adormida: no sona tard
+    if(a.days === 'once'){ a.on = false; saveAlarms(); renderAlarms(); updateWakeLock(); }
     ringAlarm(i);
-  });
+    break;
+  }
 }
 
-// So d'alarma tipus Casio: quatre xiulets curts, repetits cada segon i mig
+// Reserva: xiulets amb el sintetitzador del navegador si el fitxer de so no pot sonar
 function playAlarmBeeps(){
   const ctx = getAudioCtx();
   if(!ctx) return;
@@ -2792,18 +2914,29 @@ function playAlarmBeeps(){
 
 function ringAlarm(i){
   const a = alarms[i];
-  ringing = { i, until:Date.now() + 60 * 1000 };
+  ringing = { i, until:Date.now() + 60 * 1000, fallback:false };
   const scr = document.getElementById('watchScreen');
   if(scr) scr.classList.add('ringing');
   document.getElementById('dateDisplay').textContent = `AL${i + 1} · ${a.time}`;
   updateAlarmIndicators();
-  playAlarmBeeps();
+  if(nowPlaying && !player.paused) player.pause(); // la ràdio calla mentre sona l'alarma
+  alarmAudio.muted = false;
+  alarmAudio.loop = true;
+  alarmAudio.currentTime = 0;
+  const p = alarmAudio.play();
+  if(p && p.catch) p.catch(() => { if(ringing){ ringing.fallback = true; playAlarmBeeps(); } });
   let n = 0;
   ringing.timer = setInterval(() => {
+    if(!ringing) return;
     n++;
-    const speaking = ('speechSynthesis' in window) && window.speechSynthesis.speaking;
-    if(!speaking) playAlarmBeeps();
-    if(n === 2){ const d = new Date(); speak(timePhrase(d.getHours(), d.getMinutes())); }
+    if(ringing.fallback) playAlarmBeeps();
+    // Al cap d'uns segons, diu l'hora (pausant el xiulet) i després continua
+    if(n === 3){
+      alarmAudio.pause();
+      const d = new Date();
+      speak(timePhrase(d.getHours(), d.getMinutes()));
+      setTimeout(() => { if(ringing && !ringing.fallback){ alarmAudio.play().catch(() => {}); } }, 4500);
+    }
   }, 1500);
 }
 
@@ -2811,6 +2944,9 @@ function stopAlarm(){
   if(!ringing) return;
   clearInterval(ringing.timer);
   ringing = null;
+  alarmAudio.pause();
+  alarmAudio.loop = false;
+  try{ alarmAudio.currentTime = 0; }catch(err){}
   try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(err){}
   const scr = document.getElementById('watchScreen');
   if(scr) scr.classList.remove('ringing');
@@ -2826,10 +2962,13 @@ function setupAlarms(){
   const btn = document.getElementById('alarmBtn');
   if(btn) btn.addEventListener('click', e => {
     e.stopPropagation();
-    getAudioCtx();
     if(ringing){ stopAlarm(); return; }
+    unlockAlarmAudio();
     showView('alarmes', 1);
   });
+  // El primer toc a qualsevol lloc deixa el so i la pantalla encesa a punt
+  ['click', 'touchend'].forEach(ev => document.addEventListener(ev, () => { unlockAlarmAudio(); updateWakeLock(); }, { capture:true, passive:true }));
+  updateWakeLock();
 }
 
 /* ===================== INICI ===================== */
