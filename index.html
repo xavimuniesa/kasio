@@ -200,6 +200,20 @@
     transition: background .4s ease, transform .12s ease;
   }
   #watchScreen:active{ transform:scale(.985); }
+  /* Dues vistes a la pantalla del rellotge: hora gran / data gran (lliscant) */
+  #watchScreen{ touch-action:none; }
+  /* Totes les vistes ocupen la mateixa cel·la: la pantalla fa sempre la mateixa alçada */
+  .wv-stack{ display:grid; }
+  .wv-stack > .wv{ grid-area:1 / 1; visibility:hidden; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+  .wv-stack > .wv.on{ visibility:visible; }
+  .wv.on.enter{ animation:wvIn .28s ease; }
+  @keyframes wvIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+  .lcd-date-row.time-small{ font-variant-numeric:tabular-nums; letter-spacing:.14em; }
+  .watch-dots{ position:absolute; right:clamp(8px,2vw,14px); bottom:clamp(5px,1.2vw,8px); display:flex; gap:3px; z-index:4; pointer-events:none; }
+  .watch-dots i{ display:block; width:4px; height:4px; background:var(--lcd-ink); opacity:.22; }
+  .watch-dots i.on{ opacity:.9; width:9px; }
+  :root.zz .watch-dots{ display:none; }
+
   .calendar-wrap .lcd-screen{ border-radius:6%; }
 
   .lcd-screen::before{
@@ -248,13 +262,13 @@
     border:none;
     border-radius:2px;
     font:inherit;
-    font-weight:800;
-    font-size:clamp(8px, calc(var(--panel-width) * 0.028), 12px);
-    letter-spacing:.03em;
+    font-weight:900;
+    font-size:clamp(9.5px, calc(var(--panel-width) * 0.036), 15px);
+    letter-spacing:.02em;
     line-height:1.15;
     padding:1px 2px;
     margin:0;
-    opacity:.5;
+    opacity:.72;
     cursor:pointer;
     -webkit-tap-highlight-color:transparent;
   }
@@ -799,6 +813,48 @@
     .location-label{ font-size:calc(var(--panel-width) * 0.052); margin-top:8px; }
     .seven-seg-time{ margin:6px 0 4px; }
   }
+  /* ============ CRONÒMETRE I COMPTE ENRERE ============ */
+  .seven-seg-time.small{ margin:clamp(2px,.8vw,6px) 0 clamp(4px,1vw,7px); position:relative; }
+  .seven-seg-time.small .digit{ width:calc(var(--digit-w) * 0.7); }
+  .seven-seg-time.small .colon{ width:calc(var(--digit-w) * 0.7 * 0.42); }
+  .sep .c1, .sep .c2, .sep .d{ display:none; }
+  .sep.colon-mode .c1, .sep.colon-mode .c2{ display:inline; }
+  .sep.dot-mode .d{ display:inline; }
+  .wv-laps{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:4px;
+    color:var(--lcd-ink); text-align:center; white-space:nowrap;
+    font-size:clamp(8px, calc(var(--panel-width) * 0.03), 13px); font-weight:800;
+    font-variant-numeric:tabular-nums; letter-spacing:.02em;
+  }
+  .wv-laps .k{ font-size:.75em; opacity:.6; margin-right:2px; }
+  .wv-laps .empty{ opacity:.28; }
+  .tmr-info{ display:flex; justify-content:space-between; padding:0 2px; }
+  .wv-ctl{ display:flex; justify-content:space-between; align-items:center; gap:5px; margin-top:clamp(4px,1vw,8px); }
+  .wv-tag{ color:var(--lcd-ink); font-weight:800; letter-spacing:.14em; opacity:.6; font-size:clamp(8px, calc(var(--panel-width) * 0.028), 12px); }
+  .wv-btn{
+    appearance:none; background:transparent; color:var(--lcd-ink);
+    border:1.5px solid var(--lcd-ink); border-radius:3px;
+    font:inherit; font-weight:800; letter-spacing:.07em; line-height:1.1;
+    font-size:clamp(8px, calc(var(--panel-width) * 0.029), 13px);
+    padding:3px 6px; min-width:4.4em; cursor:pointer; white-space:nowrap;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wv-btn.main{ background:var(--lcd-ink); color:var(--lcd-bg-1); }
+  .wv-btn:active{ transform:scale(.92); }
+  .wv-btn:disabled{ opacity:.28; cursor:default; transform:none; }
+  :root[data-theme="night"] .wv-btn.main{ background:transparent; color:var(--lcd-ink); box-shadow:inset 0 0 0 1px var(--lcd-ink); }
+  .tmr-set{ position:absolute; inset:0; width:100%; height:100%; opacity:0; border:0; padding:0; margin:0; font-size:16px; cursor:pointer; }
+  .tmr-set:disabled{ display:none; }
+  #watchScreen.ringing .wv-tmr .seven-seg-time{ animation:blink 1s steps(1) infinite; }
+
+  @media (orientation:landscape) and (max-height:520px){
+    .seven-seg-time.small{ margin:1px 0 2px; }
+    .seven-seg-time.small .digit{ width:calc(var(--digit-w) * 0.66); }
+    .seven-seg-time.small .colon{ width:calc(var(--digit-w) * 0.66 * 0.42); }
+    .wv-ctl{ margin-top:3px; }
+    .wv-btn{ padding:2px 5px; }
+  }
+
   /* ============ MODE Zz (tauleta de nit) ============
      Només el rellotge, gran i molt tènue, amb la pantalla sempre encesa
      perquè les alarmes puguin sonar. Va al final perquè guanyi a la resta. */
@@ -832,6 +888,11 @@
   html.zz .rbtn .disc{ width:48px; }
   html.zz #zzBtn .disc svg{ color:var(--accent); opacity:1; }
   html.zz #zzBtn .lbl{ color:var(--lcd-ink); }
+  /* En Zz automàtic (compte enrere en marxa) es veu el compte enrere gran */
+  :root.zz .seven-seg-time.small .digit{ width:var(--digit-w); }
+  :root.zz .seven-seg-time.small .colon{ width:calc(var(--digit-w) * 0.42); }
+  :root.zz .wv-ctl{ display:none; }
+  :root.zz-auto .zz-info{ display:none; }
 </style>
 
 </head>
@@ -857,10 +918,37 @@
             </span>
           </div>
 
-          <div class="seven-seg-time" id="timeDisplay"></div>
-
-          <div class="lcd-date-row" id="dateDisplay">-- --- ----</div>
+          <div class="wv-stack" id="wvStack">
+            <div class="wv wv-time on" data-wv="time">
+              <div class="seven-seg-time" id="timeDisplay"></div>
+              <div class="lcd-date-row" id="dateDisplay">-- --- ----</div>
+            </div>
+            <div class="wv wv-date" data-wv="date">
+              <div class="seven-seg-time" id="dateBig"></div>
+              <div class="lcd-date-row time-small" id="timeSmall">--:--:--</div>
+            </div>
+            <div class="wv wv-stw" data-wv="stw">
+              <div class="seven-seg-time small" id="stwDisplay"></div>
+              <div class="wv-laps" id="stwLaps"></div>
+              <div class="wv-ctl">
+                <button class="wv-btn" id="stwLeft" type="button">LAP</button>
+                <span class="wv-tag">STW</span>
+                <button class="wv-btn main" id="stwRight" type="button">START</button>
+              </div>
+            </div>
+            <div class="wv wv-tmr" data-wv="tmr">
+              <div class="seven-seg-time small" id="tmrDisplay"><input class="tmr-set" id="tmrSet" type="time" aria-label="TMR"></div>
+              <div class="wv-laps tmr-info" id="tmrInfo"><span class="wv-tag">TMR</span><span id="tmrInfoTx"></span></div>
+              <div class="wv-ctl">
+                <button class="wv-btn" id="tmrPlus1" type="button">+1 MIN</button>
+                <button class="wv-btn" id="tmrPlus5" type="button">+5 MIN</button>
+                <button class="wv-btn" id="tmrReset" type="button">RESET</button>
+                <button class="wv-btn main" id="tmrStart" type="button">START</button>
+              </div>
+            </div>
+          </div>
           <div class="zz-info" id="zzInfo"></div>
+          <div class="watch-dots" id="watchDots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
         </div>
       </div>
     </div>
@@ -980,11 +1068,11 @@
 
             <!-- Podcasts -->
             <section class="view view-pag" data-view="podcasts">
-              <div class="pag-head"><span class="pag-label" data-i18n="pPodcasts">PODCASTS</span><span class="pag-side">RAC1</span></div>
+              <div class="pag-head"><span class="pag-label" data-i18n="pPodcasts">PODCASTS</span><span class="pag-side" id="podSide">RAC1</span></div>
               <div class="pag-body">
-                <div class="rows-title">LA COMPETÈNCIA</div>
+                <div class="rows-title" id="podTitle1">LA COMPETÈNCIA</div>
                 <div class="rows" id="compRows"><div class="status" data-i18n="loading">CARREGANT</div></div>
-                <div class="rows-title">VIA LLIURE · 7 H</div>
+                <div class="rows-title" id="podTitle2">VIA LLIURE · 7 H</div>
                 <div class="rows two" id="viaRows"><div class="status" data-i18n="loading">CARREGANT</div></div>
                 <div class="status" id="podStatus"></div>
               </div>
@@ -1058,6 +1146,40 @@ function colonSVG(){
 // (ara sí que parpellegen) i no refem 8 SVG cada segon.
 let digitEls = null;
 
+// Punt baix entre dia, mes i any a la vista de la data
+function dotSVG(){
+  return `<svg class="colon" viewBox="0 0 16 70" xmlns="http://www.w3.org/2000/svg"><rect class="seg on" x="4" y="59" width="8" height="8" rx="1"/></svg>`;
+}
+let dateEls = null;
+function initDateDisplay(){
+  const layout = ['d','d','dot','d','d','dot','d','d'];
+  document.getElementById('dateBig').innerHTML = layout.map(t => t === 'dot' ? dotSVG() : digitSVG(' ')).join('');
+  dateEls = Array.from(document.querySelectorAll('#dateBig .digit')).map(svg => Array.from(svg.querySelectorAll('polygon')));
+}
+function setSegDigits(els, chars){
+  const order = ['a','b','c','d','e','f','g'];
+  chars.forEach((ch, i) => {
+    const segs = SEGMENTS[ch] || [];
+    els[i].forEach((poly, k) => {
+      const on = segs.includes(order[k]);
+      poly.classList.toggle('on', on);
+      poly.classList.toggle('off', !on);
+    });
+  });
+}
+function renderDateView(now){
+  if(!dateEls) initDateDisplay();
+  setSegDigits(dateEls, [
+    ...String(now.getDate()).padStart(2,'0'),
+    ...String(now.getMonth() + 1).padStart(2,'0'),
+    ...String(now.getFullYear() % 100).padStart(2,'0')
+  ]);
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const el = document.getElementById('timeSmall');
+  const txt = ringing ? ringing.label : t;
+  if(el && el.textContent !== txt) el.textContent = txt;
+}
+
 function initTimeDisplay(){
   const layout = ['d','d','colon','d','d','colon','d','d'];
   document.getElementById('timeDisplay').innerHTML = layout
@@ -1078,6 +1200,9 @@ function renderTime(){
   checkHourlyChime(now);
   checkAlarms(now);
   if(zzOn) updateZzInfo(now);
+  checkTimer(now);
+  checkAutoZz();
+  renderWatchView(now);
   const order = ['a','b','c','d','e','f','g'];
   chars.forEach((ch, i) => {
     const segs = SEGMENTS[ch] || [];
@@ -1091,7 +1216,9 @@ function renderTime(){
 
 /* ===================== LLENGÜES ===================== */
 // Ordre del botó de llengua: català, occità, francès, anglès, alemany, italià, portuguès.
-const LANGS = ['ca','oc','fr','en','de','it','pt'];
+const LANGS = ['ca','oc','fr','en','de','it','es'];
+// 'oc' és l'aranès (occità de la Val d'Aran); al botó hi diu AR
+const LANG_LABEL = { oc:'AR' };
 const LANG_STORAGE_KEY = 'kasioLang';
 let currentLang = 'ca';
 
@@ -1112,18 +1239,20 @@ const I18N = {
       totsSants:'Tots Sants', constitucio:'Dia de la Constitució', immaculada:'La Immaculada', nadal:'Nadal', santEsteve:'Sant Esteve' }
   },
   oc: {
-    name: 'Occitan',
+    name: 'Aranés',
     days: ['DG','DL','DM','DC','DJ','DV','DS'],
-    months: ['GENIÈR','FEBRIÈR','MARÇ','ABRIL','MAI','JUNH','JULHET','AGOST','SETEMBRE','OCTOBRE','NOVEMBRE','DECEMBRE'],
-    ui: { light:'LUM', cal:'CAL', mTemp:'TEMP', mHumid:'UMID', mFeels:'SENS', mAlt:'ALT',
-          loading:'CARGAMENT', unknownPlace:'LOC DESCONEGUT', approx:'(aprox.)', approxOnly:'LOC APROX.', na:'N/D',
-          speakLabel:'ORA', night:'Vista de nuèch', rac1:'Escotar La Competència (RAC1)', speak:"Dire l'ora",
-          chime:'Anonciar las oras', lang:'Lenga', prev:'Mes precedent', next:'Mes seguent',
-          chimeOn:'Anóncia de las oras activada.', chimeOff:'Anóncia de las oras desactivada.' },
-    holidays: { capdany:"Cap d'An", reis:'Rèis', divSant:'Divendres Sant', dillPasqua:'Diluns de Pascas',
-      treball:'Fèsta del Trabalh', pasquaGranada:'Diluns de Pentecòsta (fèsta locala)', santJoan:'Sant Joan', assumpcio:'Assompcion',
-      diada:'Fèsta Nacionala de Catalonha', merce:'La Mercè (fèsta locala)', hispanitat:"Fèsta Nacionala d'Espanha",
-      totsSants:'Totsants', constitucio:'Jorn de la Constitucion', immaculada:'Immaculada Concepcion', nadal:'Nadal', santEsteve:'Sant Estève' }
+    months: ['GÈR','HEREUÈR','MARÇ','ABRIU','MAI','JUNH','JUNHSÈGA','AGOST','SETEME','OCTOBRE','NOVEME','DESEME'],
+    // a la fila de la data, el mes sencer: «JUNH» i «JUNHSÈGA» començarien igual
+    monthsShort: ['GÈR','HEREUÈR','MARÇ','ABRIU','MAI','JUNH','JUNHSÈGA','AGOST','SETEME','OCTOBRE','NOVEME','DESEME'],
+    ui: { light:'LUM', cal:'CAL', mTemp:'TEMP', mHumid:'UMIT', mFeels:'SENS', mAlt:'ALT',
+          loading:'CARGANT', unknownPlace:'LÒC DESCONEGUT', approx:'(aprox.)', approxOnly:'LÒC APROX.', na:'N/D',
+          speakLabel:'ORA', night:'Vista de nuet', rac1:'Escotar La Competència (RAC1)', speak:'Díder era ora',
+          chime:'Anonciar es ores', lang:'Lengua', prev:'Mes anterior', next:'Mes seguent',
+          chimeOn:'Anóncia des ores activada.', chimeOff:'Anóncia des ores desactivada.' },
+    holidays: { capdany:"Cap d'An", reis:'Reis', divSant:'Diuendres Sant', dillPasqua:'Diluns de Pasqua',
+      treball:'Hèsta deth Trabalh', pasquaGranada:'Diluns de Pentacòsta (hèsta locau)', santJoan:'Sant Joan', assumpcio:'Assompcion',
+      diada:'Hèsta Nacionau de Catalonha', merce:'Era Mercè (hèsta locau)', hispanitat:"Hèsta Nacionau d'Espanha",
+      totsSants:'Totsants', constitucio:'Dia dera Constitucion', immaculada:'Immaculada Concepcion', nadal:'Nadau', santEsteve:'Sant Estèue' }
   },
   fr: {
     name: 'Français',
@@ -1181,19 +1310,19 @@ const I18N = {
       diada:'Festa nazionale della Catalogna', merce:'La Mercè (festa locale)', hispanitat:'Festa nazionale di Spagna',
       totsSants:'Ognissanti', constitucio:'Giorno della Costituzione', immaculada:'Immacolata Concezione', nadal:'Natale', santEsteve:'Santo Stefano' }
   },
-  pt: {
-    name: 'Português',
-    days: ['DOM','SEG','TER','QUA','QUI','SEX','SÁB'],
-    months: ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'],
-    ui: { light:'LUZ', cal:'CAL', mTemp:'TEMP', mHumid:'HUMID', mFeels:'SENS', mAlt:'ALT',
-          loading:'A CARREGAR', unknownPlace:'LOCAL DESCONHECIDO', approx:'(aprox.)', approxOnly:'LOCAL APROX.', na:'N/D',
-          speakLabel:'HORA', night:'Modo noturno', rac1:'Ouvir La Competència (RAC1)', speak:'Dizer as horas',
-          chime:'Anunciar as horas certas', lang:'Língua', prev:'Mês anterior', next:'Mês seguinte',
-          chimeOn:'Aviso das horas ativado.', chimeOff:'Aviso das horas desativado.' },
-    holidays: { capdany:'Ano Novo', reis:'Dia de Reis', divSant:'Sexta-feira Santa', dillPasqua:'Segunda-feira de Páscoa',
-      treball:'Dia do Trabalhador', pasquaGranada:'Segunda-feira de Pentecostes (feriado local)', santJoan:'São João', assumpcio:'Assunção',
-      diada:'Dia Nacional da Catalunha', merce:'La Mercè (feriado local)', hispanitat:'Dia Nacional de Espanha',
-      totsSants:'Todos os Santos', constitucio:'Dia da Constituição', immaculada:'Imaculada Conceição', nadal:'Natal', santEsteve:'Santo Estêvão' }
+  es: {
+    name: 'Español',
+    days: ['DO','LU','MA','MI','JU','VI','SÁ'],
+    months: ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'],
+    ui: { light:'LUZ', cal:'CAL', mTemp:'TEMP', mHumid:'HUMED', mFeels:'SENS', mAlt:'ALT',
+          loading:'CARGANDO', unknownPlace:'LUGAR DESCONOCIDO', approx:'(aprox.)', approxOnly:'LUGAR APROX.', na:'N/D',
+          speakLabel:'HORA', night:'Modo nocturno', rac1:'Escuchar La Competència (RAC1)', speak:'Decir la hora',
+          chime:'Anunciar las horas en punto', lang:'Idioma', prev:'Mes anterior', next:'Mes siguiente',
+          chimeOn:'Aviso de las horas activado.', chimeOff:'Aviso de las horas desactivado.' },
+    holidays: { capdany:'Año Nuevo', reis:'Reyes', divSant:'Viernes Santo', dillPasqua:'Lunes de Pascua',
+      treball:'Fiesta del Trabajo', pasquaGranada:'Lunes de Pascua Granada (fiesta local)', santJoan:'San Juan', assumpcio:'Asunción',
+      diada:'Diada Nacional de Cataluña', merce:'La Mercè (fiesta local)', hispanitat:'Fiesta Nacional de España',
+      totsSants:'Todos los Santos', constitucio:'Día de la Constitución', immaculada:'Inmaculada Concepción', nadal:'Navidad', santEsteve:'San Esteban' }
   }
 };
 
@@ -1233,14 +1362,15 @@ function phraseCa(H, M){
   return `${quarts === 1 ? 'És' : 'Són'} ${qNom}${extra} ${caDe(next)} ${per}.`;
 }
 
+// Aranès: «Ei era ua», «Son es tres e quart», «Son es quate mens quart»
 function phraseOc(H, M){
-  const W = ['dotze','una','doas','tres','quatre','cinc','sièis','sèt','uèch','nòu','dètz','onze'];
-  const name = h => { const v = hh24(h); if(v === 0) return 'mièjanuèch'; if(v === 12) return 'miègjorn'; const n = v % 12 || 12; return n === 1 ? 'una ora' : `${W[n % 12]} oras`; };
-  const verb = h => { const v = hh24(h); return (v === 0 || v === 12 || v % 12 === 1) ? 'Es' : 'Son'; };
+  const W = ['dotze','ua','dues','tres','quate','cinc','sies','sèt','ueit','nau','dètz','onze'];
+  const name = h => { const n = hh24(h) % 12 || 12; return n === 1 ? 'era ua' : `es ${W[n % 12]}`; };
+  const verb = h => (hh24(h) % 12 === 1 ? 'Ei' : 'Son');
   if(M === 0)  return `${verb(H)} ${name(H)}.`;
   if(M === 15) return `${verb(H)} ${name(H)} e quart.`;
-  if(M === 30) return `${verb(H)} ${name(H)} e mièja.`;
-  if(M === 45) return `${verb(H+1)} ${name(H+1)} mens lo quart.`;
+  if(M === 30) return `${verb(H)} ${name(H)} e mieja.`;
+  if(M === 45) return `${verb(H+1)} ${name(H+1)} mens quart.`;
   if(M < 30)   return `${verb(H)} ${name(H)} e ${M}.`;
   return `${verb(H+1)} ${name(H+1)} mens ${60 - M}.`;
 }
@@ -1295,21 +1425,21 @@ function phraseIt(H, M){
   return `${verb(H+1)} ${name(H+1)} meno ${60 - M}${per(H+1)}.`;
 }
 
-function phrasePt(H, M){
-  const W = ['doze','uma','duas','três','quatro','cinco','seis','sete','oito','nove','dez','onze'];
-  const name = h => { const v = hh24(h); if(v === 0) return 'meia-noite'; if(v === 12) return 'meio-dia'; return W[v % 12]; };
-  const verb = h => { const v = hh24(h); return (v === 0 || v === 12 || v % 12 === 1) ? 'É' : 'São'; };
-  const horas = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; return v % 12 === 1 ? ' hora' : ' horas'; };
-  const per = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; if(v < 6) return ' da madrugada'; if(v < 12) return ' da manhã'; if(v < 20) return ' da tarde'; return ' da noite'; };
-  if(M === 0)  return `${verb(H)} ${name(H)}${horas(H)} em ponto${per(H)}.`;
-  if(M === 15) return `${verb(H)} ${name(H)} e um quarto${per(H)}.`;
-  if(M === 30) return `${verb(H)} ${name(H)} e meia${per(H)}.`;
-  if(M === 45) return `${verb(H+1)} ${name(H+1)} menos um quarto${per(H+1)}.`;
-  if(M < 30)   return `${verb(H)} ${name(H)} e ${M}${per(H)}.`;
+function phraseEs(H, M){
+  const W = ['doce','una','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once'];
+  // «mediodía» i «medianoche» només a l'hora en punt; si no, «las doce»
+  const name = (h, exact) => { const v = hh24(h); if(exact && v === 0) return 'medianoche'; if(exact && v === 12) return 'mediodía'; const n = v % 12 || 12; return n === 1 ? 'la una' : `las ${W[n % 12]}`; };
+  const verb = (h, exact) => { const v = hh24(h); return ((exact && (v === 0 || v === 12)) || v % 12 === 1) ? 'Es' : 'Son'; };
+  const per = (h, exact) => { const v = hh24(h); if(exact && (v === 0 || v === 12)) return ''; if(v < 6) return ' de la madrugada'; if(v < 12) return ' de la mañana'; if(v < 14) return ' del mediodía'; if(v < 21) return ' de la tarde'; return ' de la noche'; };
+  if(M === 0)  return `${verb(H, true)} ${name(H, true)}${hh24(H) % 12 ? ' en punto' : ''}${per(H, true)}.`;
+  if(M === 15) return `${verb(H)} ${name(H)} y cuarto${per(H)}.`;
+  if(M === 30) return `${verb(H)} ${name(H)} y media${per(H)}.`;
+  if(M === 45) return `${verb(H+1)} ${name(H+1)} menos cuarto${per(H+1)}.`;
+  if(M < 30)   return `${verb(H)} ${name(H)} y ${M}${per(H)}.`;
   return `${verb(H+1)} ${name(H+1)} menos ${60 - M}${per(H+1)}.`;
 }
 
-const TIME_PHRASE = { ca:phraseCa, oc:phraseOc, fr:phraseFr, en:phraseEn, de:phraseDe, it:phraseIt, pt:phrasePt };
+const TIME_PHRASE = { ca:phraseCa, oc:phraseOc, fr:phraseFr, en:phraseEn, de:phraseDe, it:phraseIt, es:phraseEs };
 function timePhrase(H, M){ return (TIME_PHRASE[currentLang] || phraseCa)(H, M); }
 
 
@@ -1403,7 +1533,7 @@ function getFestius(year){
 // que és la que s'hi assembla més.
 const SPEECH_LANGS = {
   ca:['ca-ES','ca'], oc:['oc-FR','oc','ca-ES','ca'], fr:['fr-FR','fr'], en:['en-GB','en'],
-  de:['de-DE','de'], it:['it-IT','it'], pt:['pt-PT','pt']
+  de:['de-DE','de'], it:['it-IT','it'], es:['es-ES','es']
 };
 let voiceList = [];
 function refreshVoices(){
@@ -1500,7 +1630,7 @@ function toggleChime(){
 }
 // Es crida cada segon des de renderTime(): a cada hora en punt, xiulets + l'hora dita.
 function checkHourlyChime(now){
-  if(!chimeOn || zzOn || now.getMinutes() !== 0) return; // en mode Zz no diu les hores
+  if(!chimeOn || (zzOn && !zzAuto) || now.getMinutes() !== 0) return; // en mode Zz no diu les hores
   const key = now.toDateString() + '-' + now.getHours();
   if(key === lastChimeKey) return;
   lastChimeKey = key;
@@ -1519,12 +1649,12 @@ const I18N_EXTRA = {
     aq:['BONA','RAONABLE','MODERADA','DOLENTA','MOLT DOLENTA','EXTREMA'],
     alerts:{storm:'TEMPESTA',rain:'PLUJA FORTA',wind:'VENT FORT',heat:'CALOR',frost:'GLAÇADA',snow:'NEU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  oc:{ ui:{ zzAria:'Mòde Zz: ecran atudat pas e alarmas prèstas', zzNoAlarm:'CAP D\'ALARMA', zzTap:'TOCA L\'ECRAN', sendAlarm:'Botar-la al relòtge del mobil', onlyPhone:'AQUÒ FONCIONA SONQUE DEMPUÈI LO MOBIL', iosShortcutHelp:'CAL L\'ACORCHI «{n}» DINS DRECERES (UN SOL CÒP)', once:'UN CÒP', prevYear:'An precedent', nextYear:'An seguent', today:'Tornar a uèi', soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmas', pAlarmes:'ALARMAS', tapChange:'TOCA PER CAMBIAR', everyDay:'CADA JORN', stopAlarm:'ARRÈSTA', pAvisos:'ALÈRTAS', pUbicacio:'LOC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOVÈLAS',
-      next12:'PRÒCHAS 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUÈJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPÈU', live:'EN DIRÈCTE',
-      noData:'CAP DE DONADA', radioFail:'SE PÒT PAS SINTONIZAR', podFail:'SE PÒT PAS CARGAR', noNews:'CAP DE TÍTOL', windFoot:'VENT EN KM/H · OPEN-METEO' },
-    wx:{clear:'Cèl seren',mainly:'Gaireben seren',partly:'Mièg ennivolat',overcast:'Cobèrt',fog:'Nèbla',drizzle:'Plovina',rain:'Pluèja',showers:'Raissas',freezing:'Pluèja gelada',snow:'Nèu',storm:'Auratge'},
-    aq:['BONA','CORRÈCTA','MODERADA','MARRIDA','FÒRÇA MARRIDA','EXTRÈMA'],
-    alerts:{storm:'AURATGE',rain:'PLUÈJA FÒRTA',wind:'VENT FÒRT',heat:'CALOR',frost:'GEL',snow:'NÈU'},
+  oc:{ ui:{ zzAria:'Mòde Zz: ecran ences e alarmes prèstes', zzNoAlarm:'CAP ALARMA', zzTap:'TOCA ER ECRAN', sendAlarm:'Botar-la en relòtge deth mobil', onlyPhone:'AÇÒ SONQUE FONCIONE EN MOBIL', iosShortcutHelp:'CAU ER ACORCHI «{n}» ENA APP DRECERES (UN SOL CÒP)', once:'UN CÒP', prevYear:'An anterior', nextYear:'An seguent', today:'Tornar a uei', soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA ENTÀ CAMBIAR', everyDay:'CADA DIA', stopAlarm:'ARRÈSTA', pAvisos:'AVISI', pUbicacio:'LÒC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
+      next12:'PRÒXIMES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RÀF.', rRain6:'PLOJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPÈU', live:'EN DIRÈCTE',
+      noData:'CAP DE DADA', radioFail:"NON S'A POGUT SINTONIZAR", podFail:"NON S'A POGUT CARGAR", noNews:'CAP DE TÍTOL', windFoot:'VENT EN KM/H · OPEN-METEO' },
+    wx:{clear:'Ceu seren',mainly:'Quasi seren',partly:'Partiaument ennivolat',overcast:'Cubèrt',fog:'Broma',drizzle:'Plovina',rain:'Ploja',showers:'Raishades',freezing:'Ploja gelada',snow:'Nhèu',storm:'Tempèsta'},
+    aq:['BONA','ACCEPTABLA','MODERADA','DOLENTA','FÒRÇA DOLENTA','EXTRÈMA'],
+    alerts:{storm:'TEMPÈSTA',rain:'PLOJA FÒRTA',wind:'VENT FÒRT',heat:'CALOR',frost:'GELADA',snow:'NHÈU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
   fr:{ ui:{ zzAria:'Mode Zz : écran allumé et réveils prêts', zzNoAlarm:'AUCUN RÉVEIL', zzTap:'TOUCHEZ L\'ÉCRAN', sendAlarm:'L\'ajouter à l\'horloge du téléphone', onlyPhone:'NE FONCTIONNE QUE SUR LE TÉLÉPHONE', iosShortcutHelp:'IL FAUT LE RACCOURCI «{n}» DANS L\'APP RACCOURCIS (UNE SEULE FOIS)', once:'UNE FOIS', prevYear:'Année précédente', nextYear:'Année suivante', today:"Revenir à aujourd'hui", soundLabel:'SON', alarmLabel:'RÉVEIL', alarmAria:'Réveils', pAlarmes:'RÉVEILS', tapChange:'TOUCHER POUR CHANGER', everyDay:'CHAQUE JOUR', stopAlarm:'STOP', pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
       next12:'PROCHAINES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUIE 6H', rProb:'PROB.', aqTitle:'INDICE EUROPÉEN', live:'EN DIRECT',
@@ -1554,12 +1684,12 @@ const I18N_EXTRA = {
     aq:['BUONA','DISCRETA','MODERATA','SCADENTE','PESSIMA','ESTREMA'],
     alerts:{storm:'TEMPORALE',rain:'PIOGGIA FORTE',wind:'VENTO FORTE',heat:'CALDO',frost:'GELO',snow:'NEVE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  pt:{ ui:{ zzAria:'Modo Zz: ecrã ligado e alarmes prontos', zzNoAlarm:'SEM ALARME', zzTap:'TOQUE NO ECRÃ', sendAlarm:'Pôr no relógio do telemóvel', onlyPhone:'SÓ FUNCIONA NO TELEMÓVEL', iosShortcutHelp:'É PRECISO O ATALHO «{n}» NA APP ATALHOS (CRIA-SE UMA VEZ)', once:'UMA VEZ', prevYear:'Ano anterior', nextYear:'Ano seguinte', today:'Voltar a hoje', soundLabel:'SOM', alarmLabel:'ALARME', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOQUE PARA MUDAR', everyDay:'TODOS OS DIAS', stopAlarm:'PARAR', pAvisos:'ALERTAS', pUbicacio:'LOCAL', pTemps:'TEMPO', pAire:'AR', pRadio:'RÁDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIAS',
-      next12:'PRÓXIMAS 12 H', rAlt:'ALT', rWind:'VENTO', rGust:'RAJ.', rRain6:'CHUVA 6H', rProb:'PROB.', aqTitle:'ÍNDICE EUROPEU', live:'EM DIRETO',
-      noData:'SEM DADOS', radioFail:'NÃO FOI POSSÍVEL SINTONIZAR', podFail:'NÃO FOI POSSÍVEL CARREGAR', noNews:'SEM TÍTULOS', windFoot:'VENTO EM KM/H · OPEN-METEO' },
-    wx:{clear:'Céu limpo',mainly:'Pouco nublado',partly:'Parcialmente nublado',overcast:'Encoberto',fog:'Nevoeiro',drizzle:'Chuvisco',rain:'Chuva',showers:'Aguaceiros',freezing:'Chuva gelada',snow:'Neve',storm:'Trovoada'},
-    aq:['BOA','RAZOÁVEL','MODERADA','MÁ','MUITO MÁ','EXTREMA'],
-    alerts:{storm:'TROVOADA',rain:'CHUVA FORTE',wind:'VENTO FORTE',heat:'CALOR',frost:'GEADA',snow:'NEVE'},
+  es:{ ui:{ zzAria:'Modo Zz: pantalla encendida y alarmas listas', zzNoAlarm:'SIN ALARMA', zzTap:'TOCA LA PANTALLA', sendAlarm:'Ponerla en el reloj del móvil', onlyPhone:'SOLO FUNCIONA DESDE EL MÓVIL', iosShortcutHelp:'HACE FALTA EL ATAJO «{n}» EN LA APP ATAJOS (SE CREA UNA VEZ)', once:'UNA VEZ', prevYear:'Año anterior', nextYear:'Año siguiente', today:'Volver a hoy', soundLabel:'SONIDO', alarmLabel:'ALARMA', alarmAria:'Alarmas', pAlarmes:'ALARMAS', tapChange:'TOCA PARA CAMBIAR', everyDay:'CADA DÍA', stopAlarm:'PARAR', pAvisos:'AVISOS', pUbicacio:'LUGAR', pTemps:'TIEMPO', pAire:'AIRE', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'NOTICIAS',
+      next12:'PRÓXIMAS 12 H', rAlt:'ALT', rWind:'VIENTO', rGust:'RACHA', rRain6:'LLUVIA 6H', rProb:'PROB.', aqTitle:'ÍNDICE EUROPEO', live:'EN DIRECTO',
+      noData:'SIN DATOS', radioFail:'NO SE HA PODIDO SINTONIZAR', podFail:'NO SE HA PODIDO CARGAR', noNews:'SIN TITULARES', windFoot:'VIENTO EN KM/H · OPEN-METEO' },
+    wx:{clear:'Despejado',mainly:'Poco nuboso',partly:'Parcialmente nuboso',overcast:'Cubierto',fog:'Niebla',drizzle:'Llovizna',rain:'Lluvia',showers:'Chubascos',freezing:'Lluvia helada',snow:'Nieve',storm:'Tormenta'},
+    aq:['BUENA','RAZONABLE','MODERADA','MALA','MUY MALA','EXTREMA'],
+    alerts:{storm:'TORMENTA',rain:'LLUVIA FUERTE',wind:'VIENTO FUERTE',heat:'CALOR',frost:'HELADA',snow:'NIEVE'},
     compass:['N','NE','E','SE','S','SO','O','NO'] }
 };
 Object.keys(I18N_EXTRA).forEach(l => {
@@ -1765,9 +1895,11 @@ function onViewShown(name){
   if(name === 'noticies') loadNews(false);
 }
 
+let swipeTimer = 0;
 function markSwipe(){
   swipeHandled = true;
-  setTimeout(() => { swipeHandled = false; }, 400);
+  clearTimeout(swipeTimer); // un lliscament anterior no ha d'esborrar la marca d'aquest
+  swipeTimer = setTimeout(() => { swipeHandled = false; }, 400);
 }
 
 function setupScreenGestures(){
@@ -1799,7 +1931,7 @@ function setupScreenGestures(){
 
   // Després d'un lliscament, el "clic" que en resulta no ha de fer res
   screen.addEventListener('click', e => {
-    if(swipeHandled){ e.stopPropagation(); e.preventDefault(); swipeHandled = false; }
+    if(swipeHandled){ e.stopImmediatePropagation(); e.preventDefault(); swipeHandled = false; }
   }, true);
 
   // Roda del ratolí: amunt / avall entre finestres; de costat, mesos
@@ -2311,10 +2443,12 @@ const RADIO_SETS = {
     { id:'r-clasica', nom:'Radio Clásica', audio:'https://rtvelivestream.rtve.es/rtvesec/rne/rne_r2_main.m3u8', web:'https://www.rtve.es/radio/radioclasica/', rb:{ name:'Radio Clasica', cc:'ES' } },
     { id:'r-bbc', nom:'BBC World Service', audio:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service', web:'https://www.bbc.com/audio', rb:{ name:'BBC World Service', cc:'GB' } }
   ],
+  // Aranès: no hi ha cap emissora en aranès tot el dia; ràdios en occità,
+  // començant per Ràdio País (gascó, la variant més propera a l'aranès)
   oc: [
+    { id:'oc-pais', nom:'Ràdio País', audio:'https://stunnel2.cyber-streaming.com:9272/stream', web:'https://www.radiopais.fr/', rb:{ name:'Radio Pais', cc:'FR' } },
     { id:'oc-lengadoc', nom:"Ràdio Lenga d'Òc", audio:null, web:'https://www.radiolengadoc.com/', rb:{ name:"Lenga d", cc:'FR' } },
     { id:'oc-occitania', nom:'Ràdio Occitania', audio:null, web:'https://radio-occitania.com/', rb:{ name:'Occitania', cc:'FR' } },
-    { id:'oc-pais', nom:'Ràdio País', audio:null, web:'https://www.radiopais.fr/', rb:{ name:'Radio Pais', cc:'FR' } },
     { id:'oc-lengadoceu', nom:'Radio Lengadoc', audio:null, web:'https://www.lengadoc.eu/', rb:{ name:'Lengadoc', cc:'FR' } }
   ],
   fr: [
@@ -2357,15 +2491,15 @@ const RADIO_SETS = {
     { id:'it-sportiva', nom:'Radio Sportiva', audio:'https://sportiva.inmystream.it/stream/sportiva', web:'https://www.radiosportiva.com/', rb:{ name:'Radio Sportiva', cc:'IT' } },
     { id:'it-nostalgia', nom:'Radio Nostalgia', audio:'https://rn1.fluidstream.eu/nostalgia_li.mp3', web:'https://www.nostalgia.it/', rb:{ name:'Radio Nostalgia', cc:'IT' } }
   ],
-  pt: [
-    { id:'pt-antena1', nom:'Antena 1', audio:null, web:'https://www.rtp.pt/play/direto/antena1', rb:{ name:'Antena 1', cc:'PT' } },
-    { id:'pt-tsf', nom:'TSF', audio:null, web:'https://www.tsf.pt/', rb:{ name:'TSF', cc:'PT' } },
-    { id:'pt-renascenca', nom:'Renascença', audio:null, web:'https://rr.pt/', rb:{ name:'Renascença', cc:'PT' } },
-    { id:'pt-rfm', nom:'RFM', audio:null, web:'https://rfm.sapo.pt/', rb:{ name:'RFM', cc:'PT' } },
-    { id:'pt-comercial', nom:'Rádio Comercial', audio:null, web:'https://radiocomercial.pt/', rb:{ name:'Comercial', cc:'PT' } },
-    { id:'pt-m80', nom:'M80', audio:null, web:'https://m80.pt/', rb:{ name:'M80', cc:'PT' } },
-    { id:'pt-antena2', nom:'Antena 2', audio:null, web:'https://www.rtp.pt/play/direto/antena2', rb:{ name:'Antena 2', cc:'PT' } },
-    { id:'pt-antena3', nom:'Antena 3', audio:null, web:'https://www.rtp.pt/play/direto/antena3', rb:{ name:'Antena 3', cc:'PT' } }
+  es: [
+    { id:'es-ser', nom:'Cadena SER', audio:'https://playerservices.streamtheworld.com/api/livestream-redirect/CADENASER.mp3', web:'https://cadenaser.com/', rb:{ name:'Cadena SER', cc:'ES' } },
+    { id:'es-rne', nom:'RNE Radio Nacional', audio:'https://rtvelivestream.rtve.es/rtvesec/rne/rne_r1_main.m3u8', web:'https://www.rtve.es/play/radio/radio-nacional/', rb:{ name:'Radio Nacional', cc:'ES' } },
+    { id:'es-cope', nom:'COPE', audio:null, web:'https://www.cope.es/directo', rb:{ name:'COPE', cc:'ES' } },
+    { id:'es-ondacero', nom:'Onda Cero', audio:null, web:'https://www.ondacero.es/directo/', rb:{ name:'Onda Cero', cc:'ES' } },
+    { id:'es-clasica', nom:'Radio Clásica', audio:'https://rtvelivestream.rtve.es/rtvesec/rne/rne_r2_main.m3u8', web:'https://www.rtve.es/radio/radioclasica/', rb:{ name:'Radio Clasica', cc:'ES' } },
+    { id:'es-los40', nom:'LOS40', audio:'https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40.mp3', web:'https://los40.com/', rb:{ name:'LOS40', cc:'ES' } },
+    { id:'es-dial', nom:'Cadena Dial', audio:'https://playerservices.streamtheworld.com/api/livestream-redirect/CADENADIAL.mp3', web:'https://www.cadenadial.com/', rb:{ name:'Cadena Dial', cc:'ES' } },
+    { id:'es-marca', nom:'Radio Marca', audio:null, web:'https://www.marca.com/radio.html', rb:{ name:'Radio Marca', cc:'ES' } }
   ]
 };
 
@@ -2444,7 +2578,31 @@ function latestPerDay(clips, days, hour){
   return Object.values(perDay).sort((a, b) => b.data - a.data);
 }
 
-const programCache = { competencia:null, via:null };
+const programCache = { competencia:null, via:null, aran:null };
+
+// En aranès: «Eth maitin d'Aran» (Catalunya Ràdio, en aranès), del podcast
+// públic de 3Cat. Primer directament; si el navegador no ho deixa, pels intermediaris.
+const ARAN_FEED = 'https://dinamics.3cat.cat/public/podcast/catradio/xml/2/9/podprograma892.xml';
+function podcastItems(xml){
+  const doc = new DOMParser().parseFromString(xml, 'text/xml');
+  return [...doc.querySelectorAll('item')].map(it => {
+    const enc = it.querySelector('enclosure');
+    return {
+      id:'aran-' + ((it.querySelector('guid') || {}).textContent || (enc && enc.getAttribute('url')) || ''),
+      titol:((it.querySelector('title') || {}).textContent || '').trim(),
+      data:new Date((it.querySelector('pubDate') || {}).textContent || ''),
+      audio:enc ? enc.getAttribute('url') : '',
+      web:((it.querySelector('link') || {}).textContent || '').trim()
+    };
+  }).filter(cl => cl.audio && !isNaN(cl.data));
+}
+function aranClips(){
+  const tryUrl = u => withTimeout(fetch(u, { cache:'no-store' }), 10000)
+    .then(r => { if(!r.ok) throw new Error('http'); return r.text(); })
+    .then(x => { const l = podcastItems(x); if(!l.length) throw new Error('buit'); return l; });
+  const chain = [() => tryUrl(ARAN_FEED), ...PROXIES.map(px => () => tryUrl(px(ARAN_FEED)))];
+  return chain.reduce((p, f) => p.catch(f), Promise.reject(new Error('inici')));
+}
 let programsLoadedAt = 0;
 let programsBusy = false;
 
@@ -2473,15 +2631,32 @@ function programRows(box, list, name){
 
 function renderPrograms(){
   const lc = document.getElementById('compRows'), lv = document.getElementById('viaRows');
-  if(programCache.competencia) programRows(lc, programCache.competencia, 'La Competència');
-  if(programCache.via) programRows(lv, programCache.via, 'Via lliure');
+  const set = (id, t) => { const el = document.getElementById(id); if(el) el.textContent = t; };
+  const loadingRow = `<div class="status">${esc(T().ui.loading)}</div>`;
+  if(currentLang === 'oc'){
+    // Aranès: Eth maitin d'Aran a dalt i, a sota, els dos darrers de La Competència
+    set('podSide', '3CAT · RAC1');
+    set('podTitle1', "ETH MAITIN D'ARAN");
+    set('podTitle2', 'LA COMPETÈNCIA');
+    if(programCache.aran) programRows(lc, programCache.aran, "Eth maitin d'Aran"); else lc.innerHTML = loadingRow;
+    const comp = programCache.competencia;
+    if(comp) programRows(lv, comp === 'error' ? comp : comp.slice(0, 2), 'La Competència'); else lv.innerHTML = loadingRow;
+  } else {
+    set('podSide', 'RAC1');
+    set('podTitle1', 'LA COMPETÈNCIA');
+    set('podTitle2', 'VIA LLIURE · 7 H');
+    if(programCache.competencia) programRows(lc, programCache.competencia, 'La Competència'); else lc.innerHTML = loadingRow;
+    if(programCache.via) programRows(lv, programCache.via, 'Via lliure'); else lv.innerHTML = loadingRow;
+  }
   updatePlayState();
 }
 
 function loadPrograms(force){
   if(programsBusy) return;
-  if(!force && Date.now() - programsLoadedAt < 10 * 60 * 1000){ renderPrograms(); return; }
+  const needAran = currentLang === 'oc' && !Array.isArray(programCache.aran);
+  if(!force && !needAran && Date.now() - programsLoadedAt < 10 * 60 * 1000){ renderPrograms(); return; }
   programsBusy = true;
+  renderPrograms();
   const p1 = loadClips(PROGRAMS.competencia).then(clips => {
     const list = latestPerDay(clips, [1, 2, 3, 4, 5], null).slice(0, 5);
     if(!list.length) throw new Error('buit');
@@ -2492,7 +2667,12 @@ function loadPrograms(force){
     if(!list.length) throw new Error('buit');
     programCache.via = list;
   }).catch(() => { if(!Array.isArray(programCache.via)) programCache.via = 'error'; });
-  Promise.all([p1, p2]).then(() => {
+  const p3 = currentLang !== 'oc' ? Promise.resolve() : aranClips().then(clips => {
+    const list = clips.sort((a, b) => b.data - a.data).slice(0, 5).map(cl => Object.assign(cl, { m:madridParts(cl.data) }));
+    if(!list.length) throw new Error('buit');
+    programCache.aran = list;
+  }).catch(() => { if(!Array.isArray(programCache.aran)) programCache.aran = 'error'; });
+  Promise.all([p1, p2, p3]).then(() => {
     programsBusy = false;
     programsLoadedAt = Date.now();
     renderPrograms();
@@ -2580,9 +2760,12 @@ const NEWS_FEEDS = {
     { label:'ACN', load:() => headlinesViaProxy(0) },
     { label:'ACN', load:() => googleHeadlines('site:acn.cat when:1d', 'ca', 'ES', /\s+-\s+(ACN|acn\.cat|Agència Catalana de Notícies)\s*$/i) }
   ],
+  // Aranès: no hi ha cap agència ni diari en aranès amb fil de notícies.
+  // Jornalet (en occità, també publica en aranès) i, si no respon, 3Cat sobre l'Aran.
   oc: [
     { label:'JORNALET', load:() => googleHeadlines('site:jornalet.com when:14d', 'fr', 'FR', /\s+-\s+Jornalet.*$/i) },
-    { label:'JORNALET', load:() => feedHeadlines('https://www.jornalet.com/feed') }
+    { label:'JORNALET', load:() => feedHeadlines('https://www.jornalet.com/feed') },
+    { label:'3CAT · ARAN', load:() => googleHeadlines("site:3cat.cat Aran when:7d", 'ca', 'ES', /\s+-\s+3Cat.*$/i) }
   ],
   it: [
     { label:'ANSA', load:() => feedHeadlines('https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml') },
@@ -2604,10 +2787,10 @@ const NEWS_FEEDS = {
     { label:'PA · INDEPENDENT', load:() => feedHeadlines('https://www.independent.co.uk/news/uk/rss') },
     { label:'EVENING STANDARD', load:() => feedHeadlines('https://www.standard.co.uk/news/uk/rss') }
   ],
-  pt: [
-    { label:'LUSA', load:() => googleHeadlines('Lusa when:1d', 'pt-PT', 'PT') },
-    { label:'OBSERVADOR', load:() => feedHeadlines('https://observador.pt/feed/') },
-    { label:'RTP', load:() => feedHeadlines('https://www.rtp.pt/noticias/rss') }
+  es: [
+    { label:'EFE', load:() => googleHeadlines('site:efe.com when:1d', 'es', 'ES', /\s+-\s+(EFE|Agencia EFE|efe\.com).*$/i) },
+    { label:'EUROPA PRESS', load:() => feedHeadlines('https://www.europapress.es/rss/rss.aspx') },
+    { label:'RTVE', load:() => googleHeadlines('site:rtve.es when:1d', 'es', 'ES', /\s+-\s+(RTVE|RTVE\.es).*$/i) }
   ]
 };
 
@@ -2704,7 +2887,7 @@ function buildLangButtons(){
     b.type = 'button';
     b.className = 'lang-btn';
     b.dataset.lang = code;
-    b.textContent = code.toUpperCase();
+    b.textContent = LANG_LABEL[code] || code.toUpperCase();
     b.setAttribute('aria-label', I18N[code].name);
     b.addEventListener('click', e => { e.stopPropagation(); setLanguage(code); });
     row.appendChild(b);
@@ -2713,7 +2896,7 @@ function buildLangButtons(){
 
 function applyStaticTexts(){
   const t = T();
-  document.documentElement.lang = currentLang;
+  document.documentElement.lang = currentLang === 'oc' ? 'oc-aranes' : currentLang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const v = t.ui[el.dataset.i18n];
     if(v != null) el.textContent = v;
@@ -2751,6 +2934,7 @@ function setLanguage(code){
   renderAlerts();
   renderRadios();
   renderPrograms();
+  if(currentView === 'podcasts') loadPrograms(false);
   if(currentView === 'noticies') loadNews(true); else newsLang = '';
   if(!visibleViews().includes(currentView)) showView('cal', -1);
   renderAlarms();
@@ -2762,7 +2946,7 @@ function renderDate(){
   const now = new Date();
   document.getElementById('dayName').textContent = T().days[now.getDay()];
   const dd = String(now.getDate()).padStart(2,'0');
-  const mm = T().months[now.getMonth()].slice(0,3);
+  const mm = T().monthsShort ? T().monthsShort[now.getMonth()] : T().months[now.getMonth()].slice(0,3);
   if(ringing) return; // mentre sona una alarma, la fila de la data la mostra
   document.getElementById('dateDisplay').textContent = `${dd} ${mm} ${now.getFullYear()}`;
 }
@@ -2865,7 +3049,7 @@ function previewAlarm(){
    Si la pantalla s'apaga, el mòbil atura la pàgina i l'alarma no pot sonar. */
 let wakeLock = null;
 async function updateWakeLock(){
-  const need = zzOn || alarms.some(a => a.on);
+  const need = zzOn || alarms.some(a => a.on) || tmr.running;
   try{
     if(need && !wakeLock && 'wakeLock' in navigator && document.visibilityState === 'visible'){
       wakeLock = await navigator.wakeLock.request('screen');
@@ -3015,10 +3199,15 @@ function playAlarmBeeps(){
 
 function ringAlarm(i){
   const a = alarms[i];
-  ringing = { i, until:Date.now() + 60 * 1000, fallback:false };
+  ringNow(`AL${i + 1} · ${a.time}`, 'alarm', true);
+}
+
+// Fa sonar l'alarma (de les alarmes o del compte enrere) fins que es toca o passa un minut
+function ringNow(label, src, sayTime){
+  ringing = { label, src, until:Date.now() + 60 * 1000, fallback:false };
   const scr = document.getElementById('watchScreen');
   if(scr) scr.classList.add('ringing');
-  document.getElementById('dateDisplay').textContent = `AL${i + 1} · ${a.time}`;
+  document.getElementById('dateDisplay').textContent = label;
   updateAlarmIndicators();
   if(nowPlaying && !player.paused) player.pause(); // la ràdio calla mentre sona l'alarma
   alarmAudio.muted = false;
@@ -3032,7 +3221,7 @@ function ringAlarm(i){
     n++;
     if(ringing.fallback) playAlarmBeeps();
     // Al cap d'uns segons, diu l'hora (pausant el xiulet) i després continua
-    if(n === 3){
+    if(n === 3 && sayTime){
       alarmAudio.pause();
       const d = new Date();
       speak(timePhrase(d.getHours(), d.getMinutes()));
@@ -3044,6 +3233,7 @@ function ringAlarm(i){
 function stopAlarm(){
   if(!ringing) return;
   clearInterval(ringing.timer);
+  const src = ringing.src;
   ringing = null;
   alarmAudio.pause();
   alarmAudio.loop = false;
@@ -3053,6 +3243,8 @@ function stopAlarm(){
   if(scr) scr.classList.remove('ringing');
   updateAlarmIndicators();
   renderDate();
+  if(src === 'tmr'){ tmr.rem = tmr.dur; saveTmr(); renderTmr(new Date()); }
+  if(zzAuto && !tmr.running) leaveAutoZz(); // torna al mode d'abans
 }
 
 function setupAlarms(){
@@ -3125,14 +3317,15 @@ function updateZzInfo(now){
   }
 }
 
-function setZz(on){
+function setZz(on, auto){
   zzOn = !!on;
-  try{ localStorage.setItem(ZZ_STORAGE_KEY, zzOn ? '1' : '0'); }catch(err){}
+  if(!auto){ try{ localStorage.setItem(ZZ_STORAGE_KEY, zzOn ? '1' : '0'); }catch(err){} }
+  document.documentElement.classList.toggle('zz-auto', zzOn && zzAuto);
   const btn = document.getElementById('zzBtn');
   if(btn){ btn.classList.toggle('active', zzOn); btn.setAttribute('aria-pressed', String(zzOn)); }
   if(zzOn){
     hideHolidayPopup();
-    if(currentView !== 'cal') showView('cal', -1);
+    if(!auto && currentView !== 'cal') showView('cal', -1);
   } else {
     const w = document.querySelector('.watch');
     if(w) w.style.transform = '';
@@ -3140,6 +3333,7 @@ function setZz(on){
   applyTheme();
   updateZzInfo();
   updateWakeLock();
+  applyWatchView(false);
 }
 
 function setupZz(){
@@ -3154,6 +3348,314 @@ function setupZz(){
   if(saved) setZz(true);
 }
 
+
+/* ===================== PANTALLA DEL RELLOTGE: HORA · DATA · CRONÒMETRE · COMPTE ENRERE =====================
+   Lliscant la pantalla del rellotge (o amb la roda del ratolí) es passa d'una
+   vista a l'altra: esquerra o amunt, la següent; dreta o avall, l'anterior. */
+const WATCH_VIEWS = ['time', 'date', 'stw', 'tmr'];
+const WATCH_VIEW_KEY = 'kasioWatchView';
+let watchView = 'time';
+let zzAuto = false; // Zz posat sol pel compte enrere
+
+function effectiveWatchView(){ return zzOn ? (zzAuto ? 'tmr' : 'time') : watchView; }
+
+function applyWatchView(enter){
+  const v = effectiveWatchView();
+  document.querySelectorAll('#wvStack > .wv').forEach(el => {
+    const on = el.dataset.wv === v;
+    if(on && enter && !el.classList.contains('on')){ el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
+    el.classList.toggle('on', on);
+  });
+  const k = WATCH_VIEWS.indexOf(v);
+  document.querySelectorAll('#watchDots i').forEach((d, n) => d.classList.toggle('on', n === k));
+  renderWatchView(new Date());
+  stwLoop();
+}
+
+function setWatchView(v, enter){
+  watchView = WATCH_VIEWS.includes(v) ? v : 'time';
+  try{ localStorage.setItem(WATCH_VIEW_KEY, watchView); }catch(err){}
+  applyWatchView(enter !== false);
+}
+
+function stepWatchView(dir){
+  const k = WATCH_VIEWS.indexOf(watchView);
+  setWatchView(WATCH_VIEWS[(k + dir + WATCH_VIEWS.length) % WATCH_VIEWS.length]);
+}
+
+function renderWatchView(now){
+  const v = effectiveWatchView();
+  if(v === 'date') renderDateView(now);
+  else if(v === 'stw') renderStw();
+  else if(v === 'tmr') renderTmr(now);
+}
+
+// Xifres de segments petites amb separadors que poden ser «:» o «.»
+function sepSVG(){
+  return `<svg class="colon sep colon-mode" viewBox="0 0 16 70" xmlns="http://www.w3.org/2000/svg">` +
+    `<rect class="seg on c1" x="4" y="21" width="8" height="8" rx="1"/><rect class="seg on c2" x="4" y="43" width="8" height="8" rx="1"/>` +
+    `<rect class="seg on d" x="4" y="59" width="8" height="8" rx="1"/></svg>`;
+}
+function buildSegRow(el){
+  const keep = el.querySelector('input');
+  el.innerHTML = ['d','d','s','d','d','s','d','d'].map(t => t === 's' ? sepSVG() : digitSVG(' ')).join('');
+  if(keep) el.appendChild(keep);
+  return {
+    digits:[...el.querySelectorAll('.digit')].map(svg => [...svg.querySelectorAll('polygon')]),
+    seps:[...el.querySelectorAll('.sep')]
+  };
+}
+function setSegRow(row, chars, sepModes){
+  setSegDigits(row.digits, chars);
+  row.seps.forEach((s, n) => {
+    s.classList.toggle('colon-mode', sepModes[n] === ':');
+    s.classList.toggle('dot-mode', sepModes[n] === '.');
+  });
+}
+const p2 = n => String(Math.floor(n)).padStart(2, '0');
+
+/* ---- Cronòmetre: START / STOP i LAP / RESET, fins a 4 temps ---- */
+const STW_KEY = 'kasioStw';
+const STW_MAX_LAPS = 4;
+let stw = { running:false, start:0, acc:0, laps:[] };
+let stwRow = null, stwRaf = 0;
+
+function loadStw(){
+  try{
+    const s = JSON.parse(localStorage.getItem(STW_KEY) || 'null');
+    if(s && typeof s.acc === 'number') stw = { running:!!s.running, start:+s.start || 0, acc:s.acc, laps:Array.isArray(s.laps) ? s.laps.slice(0, STW_MAX_LAPS) : [] };
+  }catch(err){}
+}
+function saveStw(){ try{ localStorage.setItem(STW_KEY, JSON.stringify(stw)); }catch(err){} }
+function stwElapsed(){ return stw.acc + (stw.running ? Date.now() - stw.start : 0); }
+
+// Temps apuntat curt: 12:34.5 (menys d'una hora) o 1:02:03
+function fmtLap(ms){
+  const s = ms / 1000;
+  if(s < 3600) return `${p2(s / 60)}:${p2(s % 60)}.${Math.floor(ms / 100) % 10}`;
+  return `${Math.floor(s / 3600)}:${p2(s % 3600 / 60)}:${p2(s % 60)}`;
+}
+
+function renderStwDigits(){
+  const el = document.getElementById('stwDisplay');
+  if(!el) return;
+  if(!stwRow) stwRow = buildSegRow(el);
+  const ms = Math.min(stwElapsed(), 99 * 3600e3 + 3599e3);
+  const s = ms / 1000;
+  if(s < 3600) setSegRow(stwRow, [...p2(s / 60), ...p2(s % 60), ...p2(ms / 10 % 100)], [':', '.']);
+  else setSegRow(stwRow, [...p2(s / 3600), ...p2(s % 3600 / 60), ...p2(s % 60)], [':', ':']);
+}
+
+function renderStw(){
+  renderStwDigits();
+  const laps = document.getElementById('stwLaps');
+  if(laps){
+    let html = '';
+    for(let n = 0; n < STW_MAX_LAPS; n++){
+      const v = stw.laps[n];
+      html += v == null ? `<span class="empty"><span class="k">${n + 1}</span>--:--.-</span>` : `<span><span class="k">${n + 1}</span>${fmtLap(v)}</span>`;
+    }
+    if(laps.innerHTML !== html) laps.innerHTML = html;
+  }
+  const L = document.getElementById('stwLeft'), R = document.getElementById('stwRight');
+  const el = stwElapsed();
+  if(L){
+    if(stw.running){ L.textContent = 'LAP'; L.disabled = stw.laps.length >= STW_MAX_LAPS; }
+    else{ L.textContent = el > 0 ? 'RESET' : 'LAP'; L.disabled = el <= 0; }
+  }
+  if(R){ R.textContent = stw.running ? 'STOP' : 'START'; R.classList.toggle('main', !stw.running); }
+}
+
+// Mentre corre i es veu, les centèsimes s'actualitzen a cada fotograma
+function stwLoop(){
+  if(stwRaf) return;
+  const tick = () => {
+    stwRaf = 0;
+    if(effectiveWatchView() !== 'stw' || !stw.running) return;
+    renderStwDigits();
+    stwRaf = requestAnimationFrame(tick);
+  };
+  if(effectiveWatchView() === 'stw' && stw.running) stwRaf = requestAnimationFrame(tick);
+}
+
+function stwStartStop(){
+  if(stw.running){ stw.acc = stwElapsed(); stw.running = false; }
+  else{ stw.start = Date.now(); stw.running = true; }
+  saveStw(); renderStw(); stwLoop();
+}
+function stwLapReset(){
+  if(stw.running){ if(stw.laps.length < STW_MAX_LAPS) stw.laps.push(stwElapsed()); }
+  else{ stw.acc = 0; stw.laps = []; }
+  saveStw(); renderStw();
+}
+
+/* ---- Compte enrere amb alarma al 0 ---- */
+const TMR_KEY = 'kasioTmr';
+const TMR_MAX = 23 * 3600e3 + 59 * 60e3 + 59e3;
+let tmr = { dur:5 * 60e3, rem:5 * 60e3, running:false, end:0 };
+let tmrRow = null;
+
+function loadTmr(){
+  try{
+    const s = JSON.parse(localStorage.getItem(TMR_KEY) || 'null');
+    if(s && typeof s.dur === 'number') tmr = { dur:s.dur, rem:+s.rem || 0, running:!!s.running, end:+s.end || 0 };
+  }catch(err){}
+}
+function saveTmr(){ try{ localStorage.setItem(TMR_KEY, JSON.stringify(tmr)); }catch(err){} }
+function tmrRemaining(){ return tmr.running ? Math.max(0, tmr.end - Date.now()) : tmr.rem; }
+const fmtHMS = ms => { const s = Math.ceil(ms / 1000); return `${Math.floor(s / 3600)}:${p2(s % 3600 / 60)}:${p2(s % 60)}`; };
+
+function renderTmr(now){
+  const el = document.getElementById('tmrDisplay');
+  if(!el) return;
+  if(!tmrRow) tmrRow = buildSegRow(el);
+  const s = Math.ceil(tmrRemaining() / 1000);
+  setSegRow(tmrRow, [...p2(s / 3600), ...p2(s % 3600 / 60), ...p2(s % 60)], [':', ':']);
+  const tx = document.getElementById('tmrInfoTx');
+  if(tx){
+    const t = tmr.running
+      ? '→ ' + new Date(tmr.end).toTimeString().slice(0, 5)
+      : 'SET ' + fmtHMS(tmr.dur);
+    if(tx.textContent !== t) tx.textContent = t;
+  }
+  const st = document.getElementById('tmrStart');
+  if(st){ st.textContent = tmr.running ? 'STOP' : 'START'; st.classList.toggle('main', !tmr.running); st.disabled = !tmr.running && tmrRemaining() <= 0 && tmr.dur <= 0; }
+  const inp = document.getElementById('tmrSet');
+  if(inp){
+    inp.disabled = tmr.running;
+    const v = `${p2(tmr.dur / 3600e3)}:${p2(tmr.dur % 3600e3 / 60e3)}`;
+    if(document.activeElement !== inp && inp.value !== v) inp.value = v;
+  }
+}
+
+function tmrStartStop(){
+  unlockAlarmAudio(); // el toc deixa el so de l'alarma a punt
+  if(tmr.running){ tmr.rem = tmrRemaining(); tmr.running = false; }
+  else{
+    if(tmr.rem <= 0) tmr.rem = tmr.dur;
+    if(tmr.rem <= 0) return;
+    tmr.end = Date.now() + tmr.rem;
+    tmr.running = true;
+    lastInteraction = Date.now();
+  }
+  saveTmr(); renderTmr(new Date()); updateWakeLock();
+}
+function tmrAdd(min){
+  unlockAlarmAudio();
+  const add = min * 60e3;
+  if(tmr.running) tmr.end = Math.min(tmr.end + add, Date.now() + TMR_MAX);
+  else{ tmr.rem = Math.min(tmr.rem + add, TMR_MAX); tmr.dur = tmr.rem; }
+  saveTmr(); renderTmr(new Date());
+}
+// RESET: torna al temps programat; un segon RESET el posa a zero
+function tmrReset(){
+  if(!tmr.running && tmr.rem === tmr.dur){ tmr.dur = 0; tmr.rem = 0; }
+  else{ tmr.running = false; tmr.rem = tmr.dur; }
+  saveTmr(); renderTmr(new Date()); updateWakeLock();
+}
+function tmrSetFromInput(v){
+  const m = /^(\d\d):(\d\d)/.exec(v || '');
+  if(!m) return;
+  tmr.dur = Math.min((+m[1]) * 3600e3 + (+m[2]) * 60e3, TMR_MAX);
+  tmr.rem = tmr.dur; tmr.running = false;
+  saveTmr(); renderTmr(new Date());
+}
+
+// Cada segon: si el compte enrere ha arribat a 0, sona l'alarma
+function checkTimer(now){
+  if(!tmr.running || Date.now() < tmr.end) return;
+  const late = Date.now() - tmr.end;
+  tmr.running = false; tmr.rem = 0;
+  saveTmr(); updateWakeLock();
+  if(late <= ALARM_GRACE_MS && !ringing) ringNow('TMR · 0:00:00', 'tmr', false);
+  else { tmr.rem = tmr.dur; saveTmr(); if(zzAuto) leaveAutoZz(); }
+  renderTmr(now);
+}
+
+/* ---- Zz automàtic mentre corre el compte enrere ----
+   Si el compte enrere corre i fa un minut que no es toca res, la pantalla
+   passa sola a Zz (fosca i tènue, amb el compte enrere en gran). Un toc o
+   el final del compte enrere la tornen al mode d'abans. */
+const AUTO_ZZ_MS = 60 * 1000;
+let lastInteraction = Date.now();
+document.addEventListener('pointerdown', () => { lastInteraction = Date.now(); }, true);
+function checkAutoZz(){
+  if(tmr.running && !zzOn && !ringing && Date.now() - lastInteraction > AUTO_ZZ_MS){
+    zzAuto = true;
+    setZz(true, true);
+  }
+}
+function leaveAutoZz(){
+  if(!zzAuto) return;
+  zzAuto = false;
+  setZz(false, true);
+  lastInteraction = Date.now();
+}
+
+function setupWatchGestures(){
+  const s = document.getElementById('watchScreen');
+  if(!s) return;
+  const T_PX = 18;
+  let sx = null, sy = null, pid = null, done = false;
+  const reset = () => { sx = sy = pid = null; done = false; };
+  s.addEventListener('pointerdown', e => {
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    sx = e.clientX; sy = e.clientY; pid = e.pointerId; done = false;
+  });
+  s.addEventListener('pointermove', e => {
+    if(sx === null || done || e.pointerId !== pid || zzOn) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if(Math.abs(dx) > T_PX || Math.abs(dy) > T_PX){
+      done = true; markSwipe();
+      stepWatchView(Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 1 : -1) : (dy < 0 ? 1 : -1));
+    }
+  });
+  s.addEventListener('pointerup', reset);
+  s.addEventListener('pointercancel', reset);
+  s.addEventListener('pointerleave', e => { if(e.pointerType === 'mouse') reset(); });
+  // El "clic" que queda després d'un lliscament no ha de canviar el color ni l'idioma
+  s.addEventListener('click', e => {
+    if(swipeHandled){ e.stopImmediatePropagation(); e.preventDefault(); swipeHandled = false; }
+  }, true);
+  let lastWheel = 0;
+  s.addEventListener('wheel', e => {
+    e.preventDefault();
+    const now = Date.now();
+    const d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if(zzOn || now - lastWheel < 450 || Math.abs(d) < 8) return;
+    lastWheel = now;
+    stepWatchView(d > 0 ? 1 : -1);
+  }, { passive:false });
+
+  // Botons dins la pantalla: no han de canviar el color en tocar-los
+  const bind = (id, fn) => { const b = document.getElementById(id); if(b) b.addEventListener('click', e => { e.stopPropagation(); fn(); }); };
+  bind('stwRight', stwStartStop);
+  bind('stwLeft', stwLapReset);
+  bind('tmrStart', tmrStartStop);
+  bind('tmrReset', tmrReset);
+  bind('tmrPlus1', () => tmrAdd(1));
+  bind('tmrPlus5', () => tmrAdd(5));
+  const inp = document.getElementById('tmrSet');
+  if(inp){
+    inp.addEventListener('click', e => { e.stopPropagation(); try{ if(inp.showPicker) inp.showPicker(); }catch(err){} });
+    inp.addEventListener('change', () => tmrSetFromInput(inp.value));
+  }
+  // En Zz automàtic, un toc torna al mode d'abans (i no fa res més)
+  document.addEventListener('click', e => {
+    if(!zzAuto || ringing) return;
+    leaveAutoZz();
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }, true);
+
+  loadStw(); loadTmr();
+  renderStw(); renderTmr(new Date());
+  if(tmr.running) updateWakeLock();
+  let saved = 'time';
+  try{ saved = localStorage.getItem(WATCH_VIEW_KEY) || 'time'; }catch(err){}
+  setWatchView(saved, false);
+}
+
 /* ===================== INICI ===================== */
 initLanguage();
 buildLangButtons();
@@ -3161,6 +3663,7 @@ initTheme();
 setupVoiceButtons();
 setupAlarms();
 setupZz();
+setupWatchGestures();
 setupScreenGestures();
 setupCalNavButtons();
 renderTime();
