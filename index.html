@@ -40,7 +40,7 @@
     --mono:'JetBrains Mono', ui-monospace, monospace;
     /* Definit aquí, al principi, perquè els media queries el puguin sobreescriure. */
     --panel-width: clamp(300px, 48vw, 460px);
-    --digit-w: min(50px, calc((var(--panel-width) - 120px) / 6.9));
+    --digit-w: min(50px, calc((var(--panel-width) - 120px) / 7.6));
   }
 
   /* ============ TEMES DE DIA (toc a la pantalla per canviar) ============ */
@@ -139,7 +139,7 @@
   @media (orientation:landscape) and (max-height:520px){
     :root{
       --panel-width: min(clamp(190px, 88vh, 420px), 42vw);
-      --digit-w: calc((var(--panel-width) - 64px) / 6.9);
+      --digit-w: calc((var(--panel-width) - 64px) / 7.6);
     }
     .page{
       --pad: clamp(8px, 2vh, 18px);
@@ -893,6 +893,28 @@
   :root.zz .seven-seg-time.small .colon{ width:calc(var(--digit-w) * 0.42); }
   :root.zz .wv-ctl{ display:none; }
   :root.zz-auto .zz-info{ display:none; }
+  /* Icona de cada vista a la dreta de les xifres: rellotge, calendari, cronòmetre, sorrellotge */
+  .wv-row{ display:flex; align-items:center; justify-content:center; gap:calc(var(--digit-w) * 0.22); }
+  .wv-row > .seven-seg-time{ flex:none; }
+  .wv-ico{ flex:none; width:clamp(19px, calc(var(--digit-w) * 0.8), 40px); height:auto; color:var(--lcd-ink); opacity:.85; }
+  .wv-row.small .wv-ico{ width:clamp(16px, calc(var(--digit-w) * 0.55), 36px); }
+  :root.zz .wv-ico{ display:none; }
+  @media (orientation:landscape) and (max-height:520px){
+    .wv-row:not(.small) .wv-ico{ width:calc(var(--digit-w) * 0.6); }
+  }
+
+  /* En horitzontal, amb el cronòmetre o el compte enrere, només la pantalla del rellotge, més gran */
+  @media (orientation:landscape){
+    :root.solo-wv{
+      --panel-width: min(92vw, 640px, calc(84vh * 2.1));
+      --digit-w: calc((var(--panel-width) - 80px) / 7.6);
+    }
+    :root.solo-wv .calendar-wrap,
+    :root.solo-wv .location-label{ display:none; }
+    :root.solo-wv .rbtn .disc{ width:46px; }
+    :root.solo-wv .seven-seg-time.small .digit{ width:calc(var(--digit-w) * 0.85); }
+    :root.solo-wv .seven-seg-time.small .colon{ width:calc(var(--digit-w) * 0.85 * 0.42); }
+  }
 </style>
 
 </head>
@@ -920,15 +942,15 @@
 
           <div class="wv-stack" id="wvStack">
             <div class="wv wv-time on" data-wv="time">
-              <div class="seven-seg-time" id="timeDisplay"></div>
+              <div class="wv-row"><div class="seven-seg-time" id="timeDisplay"></div><svg class="wv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6.5V12l3.8 2.4"/></svg></div>
               <div class="lcd-date-row" id="dateDisplay">-- --- ----</div>
             </div>
             <div class="wv wv-date" data-wv="date">
-              <div class="seven-seg-time" id="dateBig"></div>
+              <div class="wv-row"><div class="seven-seg-time" id="dateBig"></div><svg class="wv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M7.5 14h2M11 14h2M14.5 14h2M7.5 17h2M11 17h2"/></svg></div>
               <div class="lcd-date-row time-small" id="timeSmall">--:--:--</div>
             </div>
             <div class="wv wv-stw" data-wv="stw">
-              <div class="seven-seg-time small" id="stwDisplay"></div>
+              <div class="wv-row small"><div class="seven-seg-time small" id="stwDisplay"></div><svg class="wv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M10 2.5h4M12 2.5V6M12 13.5l3-3M18.5 6.5 20 5"/></svg></div>
               <div class="wv-laps" id="stwLaps"></div>
               <div class="wv-ctl">
                 <button class="wv-btn" id="stwLeft" type="button">LAP</button>
@@ -937,7 +959,7 @@
               </div>
             </div>
             <div class="wv wv-tmr" data-wv="tmr">
-              <div class="seven-seg-time small" id="tmrDisplay"><input class="tmr-set" id="tmrSet" type="time" aria-label="TMR"></div>
+              <div class="wv-row small"><div class="seven-seg-time small" id="tmrDisplay"><input class="tmr-set" id="tmrSet" type="time" aria-label="TMR"></div><svg class="wv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 5 8 5.5 8 9s-8 4-8 9M16 3c0 5-8 5.5-8 9s8 4 8 9"/></svg></div>
               <div class="wv-laps tmr-info" id="tmrInfo"><span class="wv-tag">TMR</span><span id="tmrInfoTx"></span></div>
               <div class="wv-ctl">
                 <button class="wv-btn" id="tmrPlus1" type="button">+1 MIN</button>
@@ -3366,6 +3388,7 @@ function applyWatchView(enter){
     if(on && enter && !el.classList.contains('on')){ el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
     el.classList.toggle('on', on);
   });
+  document.documentElement.classList.toggle('solo-wv', !zzOn && (v === 'stw' || v === 'tmr'));
   const k = WATCH_VIEWS.indexOf(v);
   document.querySelectorAll('#watchDots i').forEach((d, n) => d.classList.toggle('on', n === k));
   renderWatchView(new Date());
@@ -3573,10 +3596,10 @@ function checkTimer(now){
 }
 
 /* ---- Zz automàtic mentre corre el compte enrere ----
-   Si el compte enrere corre i fa un minut que no es toca res, la pantalla
+   Si el compte enrere corre i fa 10 segons que no es toca res, la pantalla
    passa sola a Zz (fosca i tènue, amb el compte enrere en gran). Un toc o
    el final del compte enrere la tornen al mode d'abans. */
-const AUTO_ZZ_MS = 60 * 1000;
+const AUTO_ZZ_MS = 10 * 1000; // 10 s sense tocar res
 let lastInteraction = Date.now();
 document.addEventListener('pointerdown', () => { lastInteraction = Date.now(); }, true);
 function checkAutoZz(){
