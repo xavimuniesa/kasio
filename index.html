@@ -829,6 +829,31 @@
   .wv-laps .k{ font-size:.75em; opacity:.6; margin-right:2px; }
   .wv-laps .empty{ opacity:.28; }
   .tmr-info{ display:flex; justify-content:space-between; padding:0 2px; }
+
+  /* Cronòmetre de relleus: botons als costats de les xifres i, a sota, una cinta
+     amb el parcial de cada tram (a dalt) i el temps acumulat (a sota). Es veuen
+     4 trams; amb més, la cinta es llisca de costat. */
+  .stw-main{ display:flex; align-items:center; justify-content:space-between; gap:4px; }
+  .stw-main .wv-row{ flex:1; min-width:0; gap:calc(var(--digit-w) * 0.15); }
+  .stw-main .wv-btn{ min-width:0; padding:3px 5px; }
+  .stw-tape{
+    --cols:4; --cg:6px;
+    display:grid; grid-auto-flow:column; grid-template-rows:auto auto;
+    grid-auto-columns:calc((100% - (var(--cols) - 1) * var(--cg)) / var(--cols));
+    column-gap:var(--cg); row-gap:1px;
+    overflow-x:auto; overflow-y:hidden; scroll-snap-type:x proximity; scroll-behavior:smooth;
+    touch-action:pan-x; overscroll-behavior-x:contain; scrollbar-width:none;
+    margin-top:clamp(3px,.8vw,6px);
+    color:var(--lcd-ink); text-align:center; white-space:nowrap;
+    font-size:clamp(8px, calc(var(--panel-width) * 0.03), 13px); font-weight:800;
+    font-variant-numeric:tabular-nums; letter-spacing:.01em;
+  }
+  .stw-tape::-webkit-scrollbar{ display:none; }
+  .stw-tape > span{ scroll-snap-align:start; }
+  .stw-tape .k{ font-size:.72em; opacity:.6; margin-right:2px; }
+  .stw-tape .acc{ font-weight:700; opacity:.72; border-top:1px solid var(--lcd-line); padding-top:1px; }
+  .stw-tape .empty{ opacity:.28; }
+  .stw-tape.more{ -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent); mask-image:linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent); }
   .wv-ctl{ display:flex; justify-content:space-between; align-items:center; gap:5px; margin-top:clamp(4px,1vw,8px); }
   .wv-tag{ color:var(--lcd-ink); font-weight:800; letter-spacing:.14em; opacity:.6; font-size:clamp(8px, calc(var(--panel-width) * 0.028), 12px); }
   .wv-btn{
@@ -980,13 +1005,12 @@
               <div class="lcd-date-row time-small" id="timeSmall">--:--:--</div>
             </div>
             <div class="wv wv-stw" data-wv="stw">
-              <div class="wv-row small"><div class="seven-seg-time small" id="stwDisplay"></div><svg class="wv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M10 2.5h4M12 2.5V6M12 13.5l3-3M18.5 6.5 20 5"/></svg></div>
-              <div class="wv-laps" id="stwLaps"></div>
-              <div class="wv-ctl">
+              <div class="stw-main">
                 <button class="wv-btn" id="stwLeft" type="button">LAP</button>
-                <span class="wv-tag">STW</span>
+                <div class="wv-row small"><div class="seven-seg-time small" id="stwDisplay"></div><svg class="wv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M10 2.5h4M12 2.5V6M12 13.5l3-3M18.5 6.5 20 5"/></svg></div>
                 <button class="wv-btn main" id="stwRight" type="button">START</button>
               </div>
+              <div class="stw-tape" id="stwTape"></div>
             </div>
             <div class="wv wv-tmr" data-wv="tmr">
               <div class="wv-row small"><div class="seven-seg-time small" id="tmrDisplay"><input class="tmr-set" id="tmrSet" type="time" aria-label="TMR"></div><svg class="wv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 5 8 5.5 8 9s-8 4-8 9M16 3c0 5-8 5.5-8 9s8 4 8 9"/></svg></div>
@@ -3469,14 +3493,14 @@ const p2 = n => String(Math.floor(n)).padStart(2, '0');
 
 /* ---- Cronòmetre: START / STOP i LAP / RESET, fins a 4 temps ---- */
 const STW_KEY = 'kasioStw';
-const STW_MAX_LAPS = 4;
+const STW_COLS = 4; // trams visibles a la cinta
 let stw = { running:false, start:0, acc:0, laps:[] };
 let stwRow = null, stwRaf = 0;
 
 function loadStw(){
   try{
     const s = JSON.parse(localStorage.getItem(STW_KEY) || 'null');
-    if(s && typeof s.acc === 'number') stw = { running:!!s.running, start:+s.start || 0, acc:s.acc, laps:Array.isArray(s.laps) ? s.laps.slice(0, STW_MAX_LAPS) : [] };
+    if(s && typeof s.acc === 'number') stw = { running:!!s.running, start:+s.start || 0, acc:s.acc, laps:Array.isArray(s.laps) ? s.laps.filter(x => typeof x === 'number') : [] };
   }catch(err){}
 }
 function saveStw(){ try{ localStorage.setItem(STW_KEY, JSON.stringify(stw)); }catch(err){} }
@@ -3499,21 +3523,33 @@ function renderStwDigits(){
   else setSegRow(stwRow, [...p2(s / 3600), ...p2(s % 3600 / 60), ...p2(s % 60)], [':', ':']);
 }
 
+let stwShownLaps = -1;
 function renderStw(){
   renderStwDigits();
-  const laps = document.getElementById('stwLaps');
-  if(laps){
+  const tape = document.getElementById('stwTape');
+  if(tape && stwShownLaps !== stw.laps.length){
+    // laps = temps acumulat a cada LAP (i al STOP); el parcial és la diferència amb l'anterior
     let html = '';
-    for(let n = 0; n < STW_MAX_LAPS; n++){
-      const v = stw.laps[n];
-      html += v == null ? `<span class="empty"><span class="k">${n + 1}</span>--:--.-</span>` : `<span><span class="k">${n + 1}</span>${fmtLap(v)}</span>`;
+    const n = Math.max(STW_COLS, stw.laps.length);
+    for(let k = 0; k < n; k++){
+      const acc = stw.laps[k];
+      if(acc == null){
+        html += `<span class="empty"><span class="k">${k + 1}</span>--:--.-</span><span class="acc empty">Σ --:--.-</span>`;
+      } else {
+        const lap = acc - (k ? stw.laps[k - 1] : 0);
+        html += `<span><span class="k">${k + 1}</span>${fmtLap(lap)}</span><span class="acc">Σ ${fmtLap(acc)}</span>`;
+      }
     }
-    if(laps.innerHTML !== html) laps.innerHTML = html;
+    tape.innerHTML = html;
+    tape.classList.toggle('more', stw.laps.length > STW_COLS);
+    // el darrer tram apuntat sempre a la vista
+    tape.scrollLeft = stw.laps.length > STW_COLS ? tape.scrollWidth : 0;
+    stwShownLaps = stw.laps.length;
   }
   const L = document.getElementById('stwLeft'), R = document.getElementById('stwRight');
   const el = stwElapsed();
   if(L){
-    if(stw.running){ L.textContent = 'LAP'; L.disabled = stw.laps.length >= STW_MAX_LAPS; }
+    if(stw.running){ L.textContent = 'LAP'; L.disabled = false; }
     else{ L.textContent = el > 0 ? 'RESET' : 'LAP'; L.disabled = el <= 0; }
   }
   if(R){ R.textContent = stw.running ? 'STOP' : 'START'; R.classList.toggle('main', !stw.running); }
@@ -3531,15 +3567,31 @@ function stwLoop(){
   if(effectiveWatchView() === 'stw' && stw.running) stwRaf = requestAnimationFrame(tick);
 }
 
+// Apunta el temps acumulat d'ara (si no és el mateix que l'últim)
+function stwMark(){
+  const t = stwElapsed();
+  const last = stw.laps.length ? stw.laps[stw.laps.length - 1] : 0;
+  if(t - last > 50) stw.laps.push(t);
+}
 function stwStartStop(){
-  if(stw.running){ stw.acc = stwElapsed(); stw.running = false; }
+  // STOP: s'atura i s'apunta el darrer parcial (el del darrer rellevista)
+  if(stw.running){ stw.acc = stwElapsed(); stw.running = false; stwMark(); }
   else{ stw.start = Date.now(); stw.running = true; }
   saveStw(); renderStw(); stwLoop();
 }
 function stwLapReset(){
-  if(stw.running){ if(stw.laps.length < STW_MAX_LAPS) stw.laps.push(stwElapsed()); }
+  if(stw.running) stwMark();
   else{ stw.acc = 0; stw.laps = []; }
   saveStw(); renderStw();
+}
+
+function setupTapeDrag(){
+  const t = document.getElementById('stwTape');
+  if(!t) return;
+  let x0 = null, s0 = 0;
+  t.addEventListener('pointerdown', e => { if(e.pointerType !== 'mouse') return; x0 = e.clientX; s0 = t.scrollLeft; t.style.scrollBehavior = 'auto'; });
+  window.addEventListener('pointermove', e => { if(x0 !== null) t.scrollLeft = s0 - (e.clientX - x0); });
+  window.addEventListener('pointerup', () => { if(x0 !== null){ x0 = null; t.style.scrollBehavior = ''; } });
 }
 
 /* ---- Compte enrere amb alarma al 0 ---- */
@@ -3653,6 +3705,7 @@ function setupWatchGestures(){
   const reset = () => { sx = sy = pid = null; done = false; };
   s.addEventListener('pointerdown', e => {
     if(e.pointerType === 'mouse' && e.button !== 0) return;
+    if(e.target.closest && e.target.closest('.stw-tape')) return; // la cinta de temps es llisca sola
     sx = e.clientX; sy = e.clientY; pid = e.pointerId; done = false;
   });
   s.addEventListener('pointermove', e => {
@@ -3673,6 +3726,8 @@ function setupWatchGestures(){
   let lastWheel = 0;
   s.addEventListener('wheel', e => {
     e.preventDefault();
+    const tape = e.target.closest && e.target.closest('.stw-tape');
+    if(tape){ tape.scrollLeft += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; return; }
     const now = Date.now();
     const d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
     if(zzOn || now - lastWheel < 450 || Math.abs(d) < 8) return;
@@ -3683,6 +3738,8 @@ function setupWatchGestures(){
   // Botons dins la pantalla: no han de canviar el color en tocar-los
   const bind = (id, fn) => { const b = document.getElementById(id); if(b) b.addEventListener('click', e => { e.stopPropagation(); fn(); }); };
   bind('stwRight', stwStartStop);
+  const tapeEl = document.getElementById('stwTape');
+  if(tapeEl) tapeEl.addEventListener('click', e => e.stopPropagation()); // tocar la cinta no canvia el color
   bind('stwLeft', stwLapReset);
   bind('tmrStart', tmrStartStop);
   bind('tmrReset', tmrReset);
@@ -3701,6 +3758,7 @@ function setupWatchGestures(){
     e.stopImmediatePropagation();
   }, true);
 
+  setupTapeDrag();
   loadStw(); loadTmr();
   renderStw(); renderTmr(new Date());
   if(tmr.running) updateWakeLock();
