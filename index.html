@@ -989,6 +989,18 @@
     letter-spacing:.05em;
     border-width:2px; border-radius:6px;
   }
+
+  .loc-wrap{ position:relative; }
+  .speak-caption{ position:absolute; left:0; right:0; top:0; margin-top:clamp(10px,2vw,16px);
+    text-align:center; font-weight:700; color:var(--label); line-height:1.2;
+    font-size:clamp(13px, calc(var(--panel-width) * 0.045), 19px); letter-spacing:.02em;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    opacity:0; pointer-events:none; transition:opacity .25s ease; }
+  .speak-caption::first-letter{ text-transform:uppercase; }
+  .loc-wrap.speaking .speak-caption{ opacity:1; }
+  .loc-wrap .location-label{ transition:opacity .25s ease; }
+  .loc-wrap.speaking .location-label{ opacity:0; }
+  html.zz .speak-caption, :root.solo-wv .speak-caption{ display:none; }
 </style>
 
 </head>
@@ -1072,7 +1084,7 @@
         <span class="lbl" id="alarmLbl" data-i18n="alarmLabel">ALARMA</span>
       </button>
     </div>
-    <div class="location-label" id="placeValue">--</div>
+    <div class="loc-wrap"><div class="location-label" id="placeValue">--</div><div class="speak-caption" id="speakCaption" aria-live="polite"></div></div>
   </div>
 
   <div class="calendar-wrap">
@@ -1649,7 +1661,36 @@ function pickVoice(lang){
   return null;
 }
 
-function speak(text){
+// Xifres en lletra per a la frase escrita (1–29: minuts i hores)
+const NUM_WORDS = {
+  ca: 'un dos tres quatre cinc sis set vuit nou deu onze dotze tretze catorze quinze setze disset divuit dinou vint vint-i-un vint-i-dos vint-i-tres vint-i-quatre vint-i-cinc vint-i-sis vint-i-set vint-i-vuit vint-i-nou',
+  // aranès: «minuta» és femení → ua, dues, vint-e-ua, vint-e-dues (normes occitanes)
+  oc: 'ua dues tres quate cinc sies sèt ueit nau dètz onze dotze tretze catòrze quinze setze dètz-e-sèt dètz-e-ueit dètz-e-nau vint vint-e-ua vint-e-dues vint-e-tres vint-e-quate vint-e-cinc vint-e-sies vint-e-sèt vint-e-ueit vint-e-nau',
+  fr: 'une deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize dix-sept dix-huit dix-neuf vingt vingt-et-un vingt-deux vingt-trois vingt-quatre vingt-cinq vingt-six vingt-sept vingt-huit vingt-neuf',
+  en: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twenty-one twenty-two twenty-three twenty-four twenty-five twenty-six twenty-seven twenty-eight twenty-nine',
+  de: 'eins zwei drei vier fünf sechs sieben acht neun zehn elf zwölf dreizehn vierzehn fünfzehn sechzehn siebzehn achtzehn neunzehn zwanzig einundzwanzig zweiundzwanzig dreiundzwanzig vierundzwanzig fünfundzwanzig sechsundzwanzig siebenundzwanzig achtundzwanzig neunundzwanzig',
+  it: 'uno due tre quattro cinque sei sette otto nove dieci undici dodici tredici quattordici quindici sedici diciassette diciotto diciannove venti ventuno ventidue ventitré ventiquattro venticinque ventisei ventisette ventotto ventinove',
+  es: 'uno dos tres cuatro cinco seis siete ocho nueve diez once doce trece catorce quince dieciséis diecisiete dieciocho diecinueve veinte veintiuno veintidós veintitrés veinticuatro veinticinco veintiséis veintisiete veintiocho veintinueve'
+};
+function wordsInText(text){
+  const W = (NUM_WORDS[currentLang] || NUM_WORDS.ca).split(' ');
+  return text.replace(/\b\d{1,2}\b/g, d => W[+d - 1] || d);
+}
+let captionTimer = null;
+function showCaption(text){
+  const c = document.getElementById('speakCaption'); if(!c) return;
+  clearTimeout(captionTimer);
+  c.textContent = wordsInText(text);
+  c.parentNode.classList.add('speaking');
+  captionTimer = setTimeout(hideCaption, Math.max(4000, text.length * 90) + 2500);
+}
+function hideCaption(delay){
+  clearTimeout(captionTimer);
+  const go = () => { const c = document.getElementById('speakCaption'); if(c) c.parentNode.classList.remove('speaking'); };
+  if(delay) captionTimer = setTimeout(go, delay); else go();
+}
+function speak(text, caption = false){
+  if(caption) showCaption(text);
   if(!('speechSynthesis' in window)) return;
   const synth = window.speechSynthesis;
   synth.cancel();
@@ -1669,6 +1710,7 @@ function speak(text){
   const done = () => {
     if(btn) btn.classList.remove('active');
     if(ducked && player) player.volume = 1;
+    if(caption) hideCaption(2500);
   };
   u.onend = done;
   u.onerror = done;
@@ -1677,7 +1719,7 @@ function speak(text){
 
 function speakNow(){
   const now = new Date();
-  speak(timePhrase(now.getHours(), now.getMinutes()));
+  speak(timePhrase(now.getHours(), now.getMinutes()), true);
 }
 
 // Dos xiulets curts, com el senyal horari d'un Casio.
@@ -1731,7 +1773,7 @@ function checkHourlyChime(now){
   lastChimeKey = key;
   if(now.getSeconds() > 20) return; // la pàgina estava adormida: no l'anunciem tard
   playHourBeeps();
-  setTimeout(() => speak(timePhrase(now.getHours(), 0)), 600);
+  setTimeout(() => speak(timePhrase(now.getHours(), 0), true), 600);
 }
 
 
@@ -3321,7 +3363,7 @@ function ringNow(label, src, sayTime){
     if(n === 3 && sayTime){
       alarmAudio.pause();
       const d = new Date();
-      speak(timePhrase(d.getHours(), d.getMinutes()));
+      speak(timePhrase(d.getHours(), d.getMinutes()), true);
       setTimeout(() => { if(ringing && !ringing.fallback){ alarmAudio.play().catch(() => {}); } }, 4500);
     }
   }, 1500);
