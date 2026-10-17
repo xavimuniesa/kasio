@@ -1001,6 +1001,21 @@
   .loc-wrap .location-label{ transition:opacity .25s ease; }
   .loc-wrap.speaking .location-label{ opacity:0; }
   html.zz .speak-caption, :root.solo-wv .speak-caption{ display:none; }
+
+  /* ===== Pluja de codi (estil Matrix / DOS) ===== */
+  .matrix{ position:fixed; inset:0; z-index:9999; background:#000; opacity:0; pointer-events:none;
+    transition:opacity .5s ease; touch-action:none; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .matrix.on{ opacity:1; pointer-events:auto; }
+  .matrix.out{ transition:opacity 1.6s ease; }
+  .matrix canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .matrix::after{ content:""; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.28) 2px 3px);
+    box-shadow:inset 0 0 120px rgba(0,0,0,.85); }
+  .matrix-prompt{ position:absolute; left:max(14px, env(safe-area-inset-left)); top:max(14px, env(safe-area-inset-top));
+    font:700 15px/1.3 "Courier New", Consolas, "Lucida Console", monospace; color:#4dff7a;
+    text-shadow:0 0 6px rgba(60,255,110,.8); background:rgba(0,0,0,.75); padding:2px 6px; z-index:1; white-space:pre; }
+  .matrix-prompt .cur{ display:inline-block; width:.6em; height:1em; vertical-align:-2px; background:#4dff7a; animation:mxBlink 1s steps(1) infinite; }
+  @keyframes mxBlink{ 50%{ opacity:0; } }
 </style>
 
 </head>
@@ -1201,6 +1216,7 @@
 
 </div>
 
+<div class="matrix" id="matrix" aria-hidden="true"><canvas id="matrixCanvas"></canvas><div class="matrix-prompt" id="matrixPrompt"></div></div>
 <script>
 /* ===================== SEVEN SEGMENT DIGITS ===================== */
 const SEGMENTS = {
@@ -2989,11 +3005,22 @@ function applyTheme(){
   const btn = document.getElementById('nightToggle');
   if(btn){ btn.classList.toggle('active', isNight); btn.setAttribute('aria-pressed', String(isNight)); }
 }
+let watchTapTimer = null;
 function cycleDayTheme(e){
   if(swipeHandled){ swipeHandled = false; return; }
   if(ringing){ stopAlarm(); return; } // si sona una alarma, tocar la pantalla l'atura
+  const onWatch = !!(e && e.currentTarget && e.currentTarget.id === 'watchScreen');
+  // Al rellotge: dos tocs seguits obren la pluja de codi; un sol toc canvia el color (amb un petit retard)
+  if(onWatch && !zzOn){
+    if(watchTapTimer){ clearTimeout(watchTapTimer); watchTapTimer = null; startMatrix(false); return; }
+    watchTapTimer = setTimeout(() => { watchTapTimer = null; nextDayTheme(true); }, 300);
+    return;
+  }
+  nextDayTheme(onWatch);
+}
+function nextDayTheme(onWatch){
   // Al cronòmetre i al compte enrere, un toc fora dels botons no ha de canviar el color
-  if(e && e.currentTarget && e.currentTarget.id === 'watchScreen' && (effectiveWatchView() === 'stw' || effectiveWatchView() === 'tmr')) return;
+  if(onWatch && (effectiveWatchView() === 'stw' || effectiveWatchView() === 'tmr')) return;
   if(isNight || zzOn) return; // de nit, tocar la pantalla no ha d'encendre colors
   dayThemeIndex = (dayThemeIndex + 1) % DAY_THEMES.length;
   try{ localStorage.setItem(THEME_STORAGE_KEY, String(dayThemeIndex)); }catch(err){}
@@ -3343,6 +3370,7 @@ function ringAlarm(i){
 
 // Fa sonar l'alarma (de les alarmes o del compte enrere) fins que es toca o passa un minut
 function ringNow(label, src, sayTime){
+  hideMatrixNow();
   ringing = { label, src, until:Date.now() + 60 * 1000, fallback:false };
   const scr = document.getElementById('watchScreen');
   if(scr) scr.classList.add('ringing');
@@ -3832,6 +3860,113 @@ function setupWatchGestures(){
   setWatchView(saved, false);
 }
 
+
+/* ===================== PLUJA DE CODI (Matrix) ===================== */
+const mx = { on:false, draining:false, raf:0, cols:[], fs:16, w:0, h:0, last:0, autoTimer:null, lastTap:0, shownAt:0 };
+function mxResize(){
+  const c = document.getElementById('matrixCanvas'); if(!c) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  mx.w = window.innerWidth; mx.h = window.innerHeight;
+  c.width = Math.round(mx.w * dpr); c.height = Math.round(mx.h * dpr);
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = '#000'; g.fillRect(0, 0, mx.w, mx.h);
+  mx.fs = mx.w < 500 ? 14 : 17;
+  const n = Math.ceil(mx.w / mx.fs);
+  const old = mx.cols;
+  mx.cols = Array.from({ length:n }, (_, i) => old[i] || mxNewCol(true));
+}
+function mxNewCol(first){
+  // y en files; comença per sobre de la pantalla perquè la cascada baixi des de dalt
+  return { y: first ? -Math.random() * 40 : -Math.random() * 12, v: 0.45 + Math.random() * 0.75, prev: null, done:false };
+}
+function mxFrame(t){
+  if(!mx.on) return;
+  mx.raf = requestAnimationFrame(mxFrame);
+  if(t - mx.last < 50) return; // ~20 imatges per segon: aspecte de pantalla antiga
+  mx.last = t;
+  const c = document.getElementById('matrixCanvas'); const g = c.getContext('2d');
+  const fs = mx.fs, rows = Math.ceil(mx.h / fs);
+  g.fillStyle = 'rgba(0,0,0,0.075)'; g.fillRect(0, 0, mx.w, mx.h);
+  g.font = `700 ${fs}px "Courier New", Consolas, "Lucida Console", monospace`;
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  let alive = 0;
+  for(let i = 0; i < mx.cols.length; i++){
+    const col = mx.cols[i];
+    if(col.done) continue;
+    alive++;
+    const x = i * fs + fs / 2;
+    const prevRow = Math.floor(col.y);
+    col.y += col.v;
+    const row = Math.floor(col.y);
+    if(row === prevRow) continue;
+    // la caràcter d'abans passa a verd; la nova, al cap de la gota, gairebé blanca
+    if(col.prev){
+      g.shadowBlur = 0; g.fillStyle = '#000'; g.fillRect(x - fs / 2, col.prev.r * fs, fs, fs);
+      g.fillStyle = '#19e55a'; g.shadowColor = 'rgba(30,255,100,.7)'; g.shadowBlur = 6;
+      g.fillText(col.prev.ch, x, col.prev.r * fs);
+    }
+    if(row >= 0 && row < rows){
+      const ch = Math.random() < 0.5 ? '0' : '1';
+      g.fillStyle = '#000'; g.shadowBlur = 0; g.fillRect(x - fs / 2, row * fs, fs, fs);
+      g.fillStyle = '#d6ffe0'; g.shadowColor = 'rgba(160,255,190,.95)'; g.shadowBlur = 10;
+      g.fillText(ch, x, row * fs);
+      col.prev = { r: row, ch };
+    } else col.prev = null;
+    if(row >= rows){
+      if(mx.draining) col.done = true; // en sortir, ja no en neixen de noves
+      else if(Math.random() > 0.6) Object.assign(col, mxNewCol(false));
+    }
+  }
+  g.shadowBlur = 0;
+  if(mx.draining && alive === 0) mxFinish();
+}
+function mxType(text){
+  const p = document.getElementById('matrixPrompt'); if(!p) return;
+  p.innerHTML = '';
+  const span = document.createElement('span'); const cur = document.createElement('span'); cur.className = 'cur';
+  p.append(span, cur);
+  let k = 0;
+  const step = () => { if(!mx.on || mx.draining) return; span.textContent = text.slice(0, ++k); if(k < text.length) setTimeout(step, 70); };
+  setTimeout(step, 250);
+}
+function startMatrix(auto){
+  const el = document.getElementById('matrix'); if(!el || mx.on) return;
+  clearTimeout(mx.autoTimer);
+  mx.on = true; mx.draining = false; mx.cols = []; mx.shownAt = Date.now(); mx.lastTap = 0;
+  el.classList.remove('out'); el.classList.add('on');
+  mxResize();
+  mxType('C:\\KASIO>');
+  mx.last = 0; mx.raf = requestAnimationFrame(mxFrame);
+  if(auto) mx.autoTimer = setTimeout(stopMatrix, 4500); // en engegar, s'esvaeix tota sola
+}
+function stopMatrix(){
+  if(!mx.on || mx.draining) return;
+  clearTimeout(mx.autoTimer);
+  mx.draining = true; // les gotes acaben de caure i no en surten de noves
+  const el = document.getElementById('matrix');
+  el.classList.add('out');
+  setTimeout(() => { if(mx.draining) el.classList.remove('on'); }, 900); // i alhora tot s'apaga a poc a poc
+  setTimeout(() => { if(mx.draining) mxFinish(); }, 2800);
+}
+function mxFinish(){
+  const el = document.getElementById('matrix');
+  cancelAnimationFrame(mx.raf);
+  mx.on = false; mx.draining = false;
+  if(el) el.classList.remove('on');
+}
+function hideMatrixNow(){ if(!mx.on) return; clearTimeout(mx.autoTimer); mxFinish(); }
+function setupMatrix(){
+  const el = document.getElementById('matrix'); if(!el) return;
+  el.addEventListener('click', e => {
+    e.stopPropagation(); e.preventDefault();
+    const now = Date.now();
+    if(now - mx.lastTap < 400){ mx.lastTap = 0; stopMatrix(); } else mx.lastTap = now;
+  });
+  window.addEventListener('resize', () => { if(mx.on) mxResize(); });
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce) startMatrix(true);
+}
+
 /* ===================== INICI ===================== */
 initLanguage();
 buildLangButtons();
@@ -3852,6 +3987,8 @@ renderRadios();
 renderDots();
 applyStaticTexts();
 initLocationData();
+
+setupMatrix();
 
 setInterval(renderTime, 1000);
 setInterval(() => { renderDate(); buildCalendar(); }, 60 * 1000);
