@@ -3011,7 +3011,7 @@ function cycleDayTheme(e){
   if(ringing){ stopAlarm(); return; } // si sona una alarma, tocar la pantalla l'atura
   const onWatch = !!(e && e.currentTarget && e.currentTarget.id === 'watchScreen');
   // Al rellotge: dos tocs seguits obren la pluja de codi; un sol toc canvia el color (amb un petit retard)
-  if(onWatch && !zzOn){
+  if(onWatch){ // també en mode Zz (allà un sol toc no fa res)
     if(watchTapTimer){ clearTimeout(watchTapTimer); watchTapTimer = null; startMatrix(false); return; }
     watchTapTimer = setTimeout(() => { watchTapTimer = null; nextDayTheme(true); }, 300);
     return;
@@ -3844,11 +3844,15 @@ function setupWatchGestures(){
     inp.addEventListener('change', () => tmrSetFromInput(inp.value));
   }
   // En Zz automàtic, un toc torna al mode d'abans (i no fa res més)
+  // Dos tocs seguits, en canvi, obren la pluja de codi i el Zz continua a sota
+  let zzTapTimer = null;
   document.addEventListener('click', e => {
     if(!zzAuto || ringing) return;
-    leaveAutoZz();
+    if(e.target.closest && e.target.closest('#matrix')) return; // la pluja gestiona els seus tocs
     e.preventDefault();
     e.stopImmediatePropagation();
+    if(zzTapTimer){ clearTimeout(zzTapTimer); zzTapTimer = null; startMatrix(false); return; }
+    zzTapTimer = setTimeout(() => { zzTapTimer = null; if(zzAuto && !mx.on) leaveAutoZz(); }, 300);
   }, true);
 
   setupTapeDrag();
