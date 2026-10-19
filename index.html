@@ -1006,7 +1006,7 @@
   .matrix{ position:fixed; inset:0; z-index:9999; background:#000; opacity:0; pointer-events:none;
     transition:opacity .5s ease; touch-action:none; cursor:pointer; -webkit-tap-highlight-color:transparent; }
   .matrix.on{ opacity:1; pointer-events:auto; }
-  .matrix.out{ transition:opacity 1.6s ease; }
+  .matrix.out{ transition:opacity 2.4s ease; }
   .matrix canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
   .matrix::after{ content:""; position:absolute; inset:0; pointer-events:none;
     background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.28) 2px 3px);
@@ -3873,69 +3873,97 @@ function mxResize(){
   mx.w = window.innerWidth; mx.h = window.innerHeight;
   c.width = Math.round(mx.w * dpr); c.height = Math.round(mx.h * dpr);
   const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.fillStyle = '#000'; g.fillRect(0, 0, mx.w, mx.h);
   mx.fs = mx.w < 500 ? 10 : 12; // 70% de la mida d'abans: més columnes, més densa
-  const n = Math.ceil(mx.w / mx.fs);
+  const n = Math.ceil(mx.w / mx.fs), rows = Math.ceil(mx.h / mx.fs);
   const old = mx.cols;
   mx.cols = Array.from({ length:n }, (_, i) => old[i] || mxNewCol(true));
+  // Cada casella recorda el seu signe i la seva lluminositat (1 = acabat de caure, 0 = apagat)
+  mx.n = n; mx.rows = rows;
+  mx.life = new Float32Array(n * rows);
+  mx.ch = new Array(n * rows).fill('');
+}
+function mxNewDrop(first){
+  // y en files; comença per sobre de la pantalla perquè la cascada baixi des de dalt
+  return { y: first ? -Math.random() * 40 : -Math.random() * 6, v: 0.65 + Math.random() * 1.05, head: -1 };
 }
 function mxNewCol(first){
-  // y en files; comença per sobre de la pantalla perquè la cascada baixi des de dalt
-  return { y: first ? -Math.random() * 40 : -Math.random() * 12, v: 0.65 + Math.random() * 1.05, prev: null, done:false };
+  return { drops: [mxNewDrop(first)], done:false,
+           decay: 1 / (55 + Math.random() * 45), // la cua triga entre 3 i 5 segons a apagar-se
+           relaunch: Math.random() < 0.5 };      // algunes columnes tornen a baixar sense esperar que s'apaguin
 }
 // Com a la pel·lícula: katakana japonesos i xifres del 0 al 9, meitat i meitat
 const MX_KANA = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
 function mxChar(){
   return Math.random() < 0.5 ? String(Math.floor(Math.random() * 10)) : MX_KANA[Math.floor(Math.random() * MX_KANA.length)];
 }
-function mxGlyph(g, ch, x, y){ g.fillText(ch, x, y); } // tots del dret, sense mirall
+const MX_LEVELS = 14;
 function mxFrame(t){
   if(!mx.on) return;
   mx.raf = requestAnimationFrame(mxFrame);
   if(t - mx.last < 50) return; // ~20 imatges per segon: aspecte de pantalla antiga
   mx.last = t;
   const c = document.getElementById('matrixCanvas'); const g = c.getContext('2d');
-  const fs = mx.fs, rows = Math.ceil(mx.h / fs);
-  g.fillStyle = 'rgba(0,0,0,0.05)'; g.fillRect(0, 0, mx.w, mx.h);
-  g.font = `600 ${fs}px "Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","MS Gothic","Noto Sans JP","Noto Sans CJK JP","Droid Sans Japanese","Courier New",monospace`;
-  g.textAlign = 'center'; g.textBaseline = 'top';
+  const fs = mx.fs, rows = mx.rows, n = mx.n, life = mx.life, chs = mx.ch;
+  // 1. Avança les gotes (una columna pot tenir diverses gotes alhora)
   let alive = 0;
-  for(let i = 0; i < mx.cols.length; i++){
+  for(let i = 0; i < n; i++){
     const col = mx.cols[i];
     if(col.done) continue;
-    alive++;
-    const x = i * fs + fs / 2;
-    const prevRow = Math.floor(col.y);
-    col.y += col.v;
-    const row = Math.floor(col.y);
-    if(row === prevRow) continue;
-    // la caràcter d'abans passa a verd; la nova, al cap de la gota, gairebé blanca
-    if(col.prev){
-      g.shadowBlur = 0; g.fillStyle = '#000'; g.fillRect(x - fs / 2, col.prev.r * fs, fs, fs);
-      g.fillStyle = '#19e55a'; g.shadowColor = 'rgba(30,255,100,.7)'; g.shadowBlur = 6;
-      mxGlyph(g, col.prev.ch, x, col.prev.r * fs);
-    }
-    if(row >= 0 && row < rows){
-      const ch = mxChar();
-      g.fillStyle = '#000'; g.shadowBlur = 0; g.fillRect(x - fs / 2, row * fs, fs, fs);
-      g.fillStyle = '#d6ffe0'; g.shadowColor = 'rgba(160,255,190,.95)'; g.shadowBlur = 10;
-      mxGlyph(g, ch, x, row * fs);
-      // de tant en tant, un signe de la cua canvia, com al film
-      const r2 = row - 2 - Math.floor(Math.random() * 6);
-      if(r2 >= 0 && Math.random() < 0.25){
-        g.shadowBlur = 0; g.fillStyle = '#000'; g.fillRect(x - fs / 2, r2 * fs, fs, fs);
-        g.fillStyle = '#12c94c'; g.shadowColor = 'rgba(30,255,100,.6)'; g.shadowBlur = 5;
-        mxGlyph(g, mxChar(), x, r2 * fs);
+    for(const d of col.drops){
+      d.y += d.v;
+      const row = Math.floor(d.y);
+      if(row !== d.head && row >= 0){
+        for(let r = Math.max(0, d.head + 1); r <= Math.min(row, rows - 1); r++){ const k = r * n + i; chs[k] = mxChar(); life[k] = 1 + col.decay; }
+        d.head = row;
       }
-      col.prev = { r: row, ch };
-    } else col.prev = null;
-    if(row >= rows){
-      if(mx.draining) col.done = true; // en sortir, ja no en neixen de noves
-      else if(Math.random() > 0.4) Object.assign(col, mxNewCol(false));
+    }
+    col.drops = col.drops.filter(d => Math.floor(d.y) < rows);
+    if(!mx.draining){
+      const last = col.drops[col.drops.length - 1];
+      if(!last){ if(Math.random() < 0.03) col.drops.push(mxNewDrop(false)); } // una estona fosca abans de tornar a caure
+      else if(col.drops.length < 2 && last.y > rows * 0.35){
+        // una nova gota surt de dalt mentre la cua d'abans encara brilla
+        if(col.relaunch && Math.random() < 0.035) col.drops.push(mxNewDrop(false));
+      }
+    }
+    if(col.drops.length) alive++;
+    else if(mx.draining) col.done = true;
+  }
+  // 2. Les cues s'apaguen a poc a poc i algun signe canvia, com al film
+  let lit = 0;
+  for(let i = 0; i < n; i++){
+    const d = mx.cols[i].decay;
+    for(let r = 0; r < rows; r++){
+      const k = r * n + i;
+      if(life[k] <= 0) continue;
+      life[k] -= d; lit++;
+      if(life[k] > 0.08 && Math.random() < 0.012) chs[k] = mxChar();
+    }
+  }
+  // 3. Dibuixa: fons negre i signes agrupats per nivell de llum
+  g.shadowBlur = 0;
+  g.fillStyle = '#000'; g.fillRect(0, 0, mx.w, mx.h);
+  g.font = `600 ${fs}px "Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","MS Gothic","Noto Sans JP","Noto Sans CJK JP","Droid Sans Japanese","Courier New",monospace`;
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  g.fillStyle = '#19e55a';
+  for(let lv = 1; lv <= MX_LEVELS; lv++){
+    const lo = (lv - 1) / MX_LEVELS, hi = lv / MX_LEVELS;
+    g.globalAlpha = Math.pow(hi, 1.35);
+    for(let k = 0; k < life.length; k++){
+      const l = life[k];
+      if(l > lo && l <= hi && l < 0.995){ const i = k % n, r = (k - i) / n; g.fillText(chs[k], i * fs + fs / 2, r * fs); }
+    }
+  }
+  // el cap de cada gota, gairebé blanc i amb resplendor
+  g.globalAlpha = 1; g.fillStyle = '#d6ffe0'; g.shadowColor = 'rgba(160,255,190,.95)'; g.shadowBlur = 10;
+  for(let i = 0; i < n; i++){
+    for(const d of mx.cols[i].drops){
+      if(d.head < 0 || d.head >= rows) continue;
+      g.fillText(chs[d.head * n + i], i * fs + fs / 2, d.head * fs);
     }
   }
   g.shadowBlur = 0;
-  if(mx.draining && alive === 0) mxFinish();
+  if(mx.draining && alive === 0 && lit === 0) mxFinish();
 }
 function mxType(text){
   const p = document.getElementById('matrixPrompt'); if(!p) return;
@@ -3962,8 +3990,8 @@ function stopMatrix(){
   mx.draining = true; // les gotes acaben de caure i no en surten de noves
   const el = document.getElementById('matrix');
   el.classList.add('out');
-  setTimeout(() => { if(mx.draining) el.classList.remove('on'); }, 900); // i alhora tot s'apaga a poc a poc
-  setTimeout(() => { if(mx.draining) mxFinish(); }, 2800);
+  setTimeout(() => { if(mx.draining) el.classList.remove('on'); }, 1400); // i alhora tot s'apaga a poc a poc
+  setTimeout(() => { if(mx.draining) mxFinish(); }, 4000);
 }
 function mxFinish(){
   const el = document.getElementById('matrix');
