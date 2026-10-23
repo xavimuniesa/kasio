@@ -1016,6 +1016,17 @@
     text-shadow:0 0 6px rgba(60,255,110,.8); background:rgba(0,0,0,.75); padding:2px 6px; z-index:1; white-space:pre; }
   .matrix-prompt .cur{ display:inline-block; width:.6em; height:1em; vertical-align:-2px; background:#4dff7a; animation:mxBlink 1s steps(1) infinite; }
   @keyframes mxBlink{ 50%{ opacity:0; } }
+
+  /* Placa «Ara sona» amb el temporitzador de la ràdio */
+  .now-plate{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+  .now-plate .sleep-btn{ display:none; }
+  .now-plate.live .sleep-btn{ display:inline-block; }
+  .sleep-btn{ font:inherit; font-size:clamp(10px, calc(var(--panel-width) * 0.032), 14px); font-weight:800; letter-spacing:.06em;
+    color:var(--lcd-ink); background:transparent; border:1.5px solid var(--lcd-ink); border-radius:4px;
+    padding:3px 8px; min-width:4.6em; min-height:28px; cursor:pointer; opacity:.75; -webkit-tap-highlight-color:transparent; }
+  .sleep-btn.on{ background:var(--lcd-ink); color:var(--lcd-bg-1); opacity:1; }
+  .sleep-btn.fading{ animation:blink 1.2s steps(1) infinite; }
+  :root[data-theme="night"] .sleep-btn.on{ background:transparent; color:var(--lcd-ink); box-shadow:inset 0 0 0 1px var(--lcd-ink); }
 </style>
 
 </head>
@@ -1185,7 +1196,7 @@
             <!-- Ràdio -->
             <section class="view view-pag" data-view="radio">
               <div class="pag-head"><span class="pag-label" data-i18n="pRadio">RÀDIO</span><span class="pag-side" data-i18n="live">EN DIRECTE</span></div>
-              <div class="pag-body"><div class="rows" id="radioRows"></div><div class="status" id="radioStatus"></div></div>
+              <div class="pag-body"><div class="rows" id="radioRows"></div><div class="now-plate" id="radioPlate"><div class="status" id="radioStatus"></div><button type="button" class="sleep-btn" id="sleepBtn">⏾ OFF</button></div></div>
             </section>
 
             <!-- Podcasts -->
@@ -1725,7 +1736,7 @@ function speak(text, caption = false){
   };
   const done = () => {
     if(btn) btn.classList.remove('active');
-    if(ducked && player) player.volume = 1;
+    if(ducked && player && !sleepT.fading) player.volume = 1;
     if(caption) hideCaption(2500);
   };
   u.onend = done;
@@ -2440,6 +2451,8 @@ function updatePlayState(){
     }
   });
   if(nowPlaying && nowPlaying.tipus === 'radio') setStatus('radioStatus', playing ? '♪ ' + nowPlaying.titol : '');
+  const plate = document.getElementById('radioPlate');
+  if(plate) plate.classList.toggle('live', !!(nowPlaying && nowPlaying.tipus === 'radio' && (playing || sleepT.end)));
   if('mediaSession' in navigator) navigator.mediaSession.playbackState = nowPlaying ? (playing ? 'playing' : 'paused') : 'none';
 }
 
@@ -4012,6 +4025,68 @@ function setupMatrix(){
   if(!reduce) startMatrix(true);
 }
 
+
+/* ===================== TEMPORITZADOR DE LA RÀDIO ===================== */
+// Cada toc: 15 → 30 → 45 → 60 → 90 min → desactivat. En acabar, el so baixa a poc a poc i s'atura.
+const SLEEP_STEPS = [0, 15, 30, 45, 60, 90];
+const SLEEP_FADE_MS = 10 * 1000;
+const SLEEP_ARIA = { ca:'Temporitzador de la ràdio', oc:'Temporizador dera ràdio', fr:'Minuterie de la radio', en:'Radio sleep timer', de:'Radio-Schlummertimer', it:'Timer della radio', es:'Temporizador de la radio' };
+const sleepT = { step:0, end:0, fading:false, fadeTimer:null };
+const CAN_SET_VOLUME = (() => { try{ const a = new Audio(); a.volume = 0.5; return Math.abs(a.volume - 0.5) < 0.01; }catch(e){ return false; } })();
+function renderSleep(){
+  const b = document.getElementById('sleepBtn'); if(!b) return;
+  let txt = '⏾ OFF';
+  if(sleepT.fading) txt = '⏾ 0′';
+  else if(sleepT.end) txt = '⏾ ' + Math.max(1, Math.ceil((sleepT.end - Date.now()) / 60000)) + '′';
+  if(b.textContent !== txt) b.textContent = txt;
+  b.classList.toggle('on', !!sleepT.end || sleepT.fading);
+  b.classList.toggle('fading', sleepT.fading);
+  b.setAttribute('aria-label', (SLEEP_ARIA[currentLang] || SLEEP_ARIA.ca) + ': ' + (sleepT.end ? SLEEP_STEPS[sleepT.step] + ' min' : 'OFF'));
+}
+function cancelSleepFade(){
+  if(!sleepT.fading) return;
+  clearInterval(sleepT.fadeTimer); sleepT.fading = false;
+  player.volume = 1;
+}
+function cycleSleep(){
+  cancelSleepFade();
+  sleepT.step = (sleepT.step + 1) % SLEEP_STEPS.length;
+  const min = SLEEP_STEPS[sleepT.step];
+  sleepT.end = min ? Date.now() + min * 60000 : 0;
+  renderSleep(); updatePlayState();
+}
+function sleepFadeOut(){
+  sleepT.end = 0; sleepT.step = 0;
+  if(!nowPlaying || player.paused){ renderSleep(); updatePlayState(); return; }
+  // A l'iPhone, Safari no deixa que una web canviï el volum: allà s'atura directament
+  if(!CAN_SET_VOLUME){ player.pause(); renderSleep(); updatePlayState(); return; }
+  sleepT.fading = true;
+  const v0 = player.volume || 1, t0 = Date.now();
+  sleepT.fadeTimer = setInterval(() => {
+    const k = Math.min(1, (Date.now() - t0) / SLEEP_FADE_MS);
+    try{ player.volume = Math.max(0, v0 * (1 - k) * (1 - k)); }catch(e){}
+    if(k >= 1){
+      clearInterval(sleepT.fadeTimer); sleepT.fading = false;
+      player.pause();
+      setTimeout(() => { player.volume = 1; }, 300); // a punt per al pròxim cop
+      renderSleep(); updatePlayState();
+    }
+  }, 100);
+  renderSleep();
+}
+function sleepTick(){
+  if(sleepT.end && Date.now() >= sleepT.end) sleepFadeOut();
+  renderSleep();
+}
+function setupSleep(){
+  const b = document.getElementById('sleepBtn'); if(!b) return;
+  b.addEventListener('click', e => { e.stopPropagation(); cycleSleep(); });
+  setInterval(sleepTick, 1000);
+  player.addEventListener('timeupdate', () => { if(sleepT.end && Date.now() >= sleepT.end) sleepFadeOut(); }); // per si el mòbil frena els temporitzadors
+  player.addEventListener('play', cancelSleepFade); // si es torna a engegar a mà mentre baixa, el so torna
+  renderSleep();
+}
+
 /* ===================== INICI ===================== */
 initLanguage();
 buildLangButtons();
@@ -4034,6 +4109,7 @@ applyStaticTexts();
 initLocationData();
 
 setupMatrix();
+setupSleep();
 
 setInterval(renderTime, 1000);
 setInterval(() => { renderDate(); buildCalendar(); }, 60 * 1000);
