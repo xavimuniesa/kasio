@@ -893,6 +893,11 @@
     --metal-1:#121212; --metal-2:#0a0a0a; --metal-hi:#121212;
     --label:#5a1d0b; --btn-text:#4d1a0a;
   }
+  /* Tons fosforescents del Zz: un toc al rellotge els va canviant */
+  :root.zz[data-theme][data-zztone="blau"]{ --lcd-ink:#3a74d0; --lcd-ghost:rgba(58,116,208,0.04); --accent:#3a74d0; --accent-light:#2a5498; --label:#1c3a6b; --btn-text:#18325c; }
+  :root.zz[data-theme][data-zztone="verd"]{ --lcd-ink:#2f9f4c; --lcd-ghost:rgba(47,159,76,0.04); --accent:#2f9f4c; --accent-light:#22743a; --label:#15502a; --btn-text:#134624; }
+  :root.zz[data-theme][data-zztone="groc"]{ --lcd-ink:#b9921d; --lcd-ghost:rgba(185,146,29,0.04); --accent:#b9921d; --accent-light:#876a15; --label:#5e4a0e; --btn-text:#52400c; }
+  :root.zz[data-theme][data-zztone="cian"]{ --lcd-ink:#2a9ea6; --lcd-ghost:rgba(42,158,166,0.04); --accent:#2a9ea6; --accent-light:#1f7379; --label:#114f54; --btn-text:#0f4549; }
   html.zz .calendar-wrap,
   html.zz .location-label,
   html.zz .lang-row,
@@ -3026,11 +3031,26 @@ function cycleDayTheme(e){
   // Al rellotge: dos tocs seguits obren la pluja de codi; un sol toc canvia el color (amb un petit retard)
   if(onWatch){ // també en mode Zz (allà un sol toc no fa res)
     if(watchTapTimer){ clearTimeout(watchTapTimer); watchTapTimer = null; startMatrix(false); return; }
-    watchTapTimer = setTimeout(() => { watchTapTimer = null; nextDayTheme(true); }, 300);
+    watchTapTimer = setTimeout(() => { watchTapTimer = null; if(zzOn){ if(!zzAuto) cycleZzTone(); } else nextDayTheme(true); }, 300);
     return;
   }
   nextDayTheme(onWatch);
 }
+// Tons del mode Zz: taronja (el de sempre), blau, verd, groc i cian
+const ZZ_TONES = ['', 'blau', 'verd', 'groc', 'cian'];
+const ZZ_TONE_KEY = 'kasioZzTone';
+let zzTone = 0;
+try{ zzTone = Math.max(0, ZZ_TONES.indexOf(localStorage.getItem(ZZ_TONE_KEY) || '')); }catch(err){}
+function applyZzTone(){
+  const t = ZZ_TONES[zzTone];
+  if(t) document.documentElement.dataset.zztone = t; else delete document.documentElement.dataset.zztone;
+}
+function cycleZzTone(){
+  zzTone = (zzTone + 1) % ZZ_TONES.length;
+  try{ localStorage.setItem(ZZ_TONE_KEY, ZZ_TONES[zzTone]); }catch(err){}
+  applyZzTone();
+}
+applyZzTone();
 function nextDayTheme(onWatch){
   // Al cronòmetre i al compte enrere, un toc fora dels botons no ha de canviar el color
   if(onWatch && (effectiveWatchView() === 'stw' || effectiveWatchView() === 'tmr')) return;
