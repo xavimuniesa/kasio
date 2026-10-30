@@ -894,6 +894,12 @@
     --label:#5a1d0b; --btn-text:#4d1a0a;
   }
   /* Tons fosforescents del Zz: un toc al rellotge els va canviant */
+  /* Combinacions: la finestra del temps porta el seu propi color */
+  html.zz .zzwx[data-wxtone="taronja"]{ --lcd-ink:#a8361a; --lcd-ghost:rgba(168,54,26,0.035); --accent:#a8361a; --accent-light:#7e2a14; --label:#5a1d0b; --btn-text:#4d1a0a; }
+  html.zz .zzwx[data-wxtone="blau"]{ --lcd-ink:#3a74d0; --lcd-ghost:rgba(58,116,208,0.04); --accent:#3a74d0; --accent-light:#2a5498; --label:#1c3a6b; --btn-text:#18325c; }
+  html.zz .zzwx[data-wxtone="verd"]{ --lcd-ink:#2f9f4c; --lcd-ghost:rgba(47,159,76,0.04); --accent:#2f9f4c; --accent-light:#22743a; --label:#15502a; --btn-text:#134624; }
+  html.zz .zzwx[data-wxtone="groc"]{ --lcd-ink:#b9921d; --lcd-ghost:rgba(185,146,29,0.04); --accent:#b9921d; --accent-light:#876a15; --label:#5e4a0e; --btn-text:#52400c; }
+  html.zz .zzwx[data-wxtone="cian"]{ --lcd-ink:#2a9ea6; --lcd-ghost:rgba(42,158,166,0.04); --accent:#2a9ea6; --accent-light:#1f7379; --label:#114f54; --btn-text:#0f4549; }
   :root.zz[data-theme][data-zztone="blau"]{ --lcd-ink:#3a74d0; --lcd-ghost:rgba(58,116,208,0.04); --accent:#3a74d0; --accent-light:#2a5498; --label:#1c3a6b; --btn-text:#18325c; }
   :root.zz[data-theme][data-zztone="verd"]{ --lcd-ink:#2f9f4c; --lcd-ghost:rgba(47,159,76,0.04); --accent:#2f9f4c; --accent-light:#22743a; --label:#15502a; --btn-text:#134624; }
   :root.zz[data-theme][data-zztone="groc"]{ --lcd-ink:#b9921d; --lcd-ghost:rgba(185,146,29,0.04); --accent:#b9921d; --accent-light:#876a15; --label:#5e4a0e; --btn-text:#52400c; }
@@ -1062,6 +1068,38 @@
   .zzb-meter span{ color:var(--lcd-ink); font:800 13px/1 monospace; margin-right:6px; }
   .zzb-meter i{ width:14px; height:6px; border-radius:1px; background:var(--lcd-ink); opacity:.15; }
   .zzb-meter i.on{ opacity:1; }
+
+  /* ===== Guia ===== */
+  .guide-body{ justify-content:flex-start; gap:clamp(4px,1.2vw,9px); color:var(--lcd-ink); }
+  .guide-title{ display:flex; align-items:center; justify-content:space-between; gap:6px;
+    font-size:clamp(13px, calc(var(--panel-width) * 0.045), 18px); font-weight:800; letter-spacing:.12em; }
+  .guide-arrow{ appearance:none; border:none; background:transparent; color:var(--lcd-ink); font:inherit; font-size:1.3em; font-weight:800;
+    line-height:1; padding:2px 10px; cursor:pointer; opacity:.75; -webkit-tap-highlight-color:transparent; }
+  .guide-rows{ display:grid; gap:2px; }
+  .guide-row{ display:grid; grid-template-columns:minmax(4.5em, 28%) 1fr; gap:6px; align-items:baseline; border-top:1.5px solid var(--lcd-line);
+    padding:clamp(2px,.6vw,5px) 2px; font-size:clamp(9.5px, calc(var(--panel-width) * 0.031), 13px); line-height:1.2; }
+  .guide-row .gk{ font-weight:800; letter-spacing:.03em; overflow-wrap:anywhere; }
+  .guide-row .gv{ font-weight:600; }
+  .guide-foot{ display:none; }
+  /* ===== Botó «?» ===== */
+  .help-btn{ appearance:none; width:18px; height:18px; padding:0; margin-right:6px; border:1.5px solid var(--lcd-ink); border-radius:4px;
+    background:transparent; color:var(--lcd-ink); font:800 11px/1 var(--mono, monospace); cursor:pointer; opacity:.8;
+    display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; position:relative; -webkit-tap-highlight-color:transparent; }
+  html.zz .help-btn{ display:none; }
+  .help-ov{ position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,.62); display:none; cursor:pointer; }
+  .help-ov.on{ display:block; }
+  .hov-box{ position:fixed; border:2px dashed #ffd84d; border-radius:10px; pointer-events:none; }
+  .hov-chip{ position:fixed; background:#ffd84d; color:#1a1405; font:800 11px/1.25 var(--mono, monospace); letter-spacing:.06em;
+    padding:4px 7px; border-radius:5px; max-width:min(320px, 86vw); text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.5); pointer-events:none; }
+  .hov-chip.list{ text-align:left; z-index:2; }
+  .hov-chip b{ display:inline-block; min-width:5.2em; }
+  .hov-close{ position:fixed; left:50%; bottom:max(14px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:max-content; max-width:92vw;
+    color:#ffd84d; font:800 11px/1.3 var(--mono, monospace); letter-spacing:.08em; text-align:center; pointer-events:none; }
+  /* ===== Mantenir premut ===== */
+  .rbtn, .help-btn, .sleep-btn, .wv-btn, .lang-btn, .guide-arrow{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+  .lp-tip{ position:fixed; z-index:9500; max-width:min(280px, 84vw); background:#ffd84d; color:#1a1405; font:700 12px/1.3 var(--mono, monospace);
+    padding:6px 9px; border-radius:6px; box-shadow:0 3px 12px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  .lp-tip.on{ opacity:1; }
 </style>
 
 </head>
@@ -1077,6 +1115,7 @@
             <span class="day-badge"><span class="live-dot"></span><span id="dayName">---</span></span>
             <div class="lang-row" id="langRow" role="group"></div>
             <span class="top-right">
+              <button type="button" class="help-btn" id="helpBtn" aria-label="?">?</button>
               <span class="alm-ind" id="almInd">ALM</span>
               <svg class="rain-icon" id="rainIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M4 12a8 8 0 0 1 16 0Z"/>
@@ -1263,6 +1302,17 @@
               <div class="pag-body"><div class="rows" id="newsRows"><div class="status" data-i18n="loading">CARREGANT</div></div></div>
             </section>
 
+
+            <!-- Guia -->
+            <section class="view view-pag" data-view="guia">
+              <div class="pag-head"><span class="pag-label" id="guideLabel">GUIA</span><span class="pag-side" id="guidePage">1/8</span></div>
+              <div class="pag-body guide-body">
+                <div class="guide-title"><button type="button" class="guide-arrow" id="guidePrev" aria-label="‹">‹</button><span id="guideTitle"></span><button type="button" class="guide-arrow" id="guideNext" aria-label="›">›</button></div>
+                <div class="guide-rows" id="guideRows"></div>
+                <div class="foot guide-foot" id="guideFoot"></div>
+              </div>
+            </section>
+
           </div>
           <div class="view-dots" id="viewDots" aria-hidden="true"></div>
           <div class="holiday-popup" id="holidayPopup" role="status" aria-live="polite"></div>
@@ -1273,6 +1323,8 @@
 
 </div>
 
+<div class="help-ov" id="helpOv" aria-hidden="true"></div>
+<div class="lp-tip" id="lpTip" role="status" aria-live="polite"></div>
 <div class="matrix" id="matrix" aria-hidden="true"><canvas id="matrixCanvas"></canvas><div class="matrix-prompt" id="matrixPrompt"></div></div>
 <script>
 /* ===================== SEVEN SEGMENT DIGITS ===================== */
@@ -1395,10 +1447,9 @@ function renderTime(){
 }
 
 /* ===================== LLENGÜES ===================== */
-// Ordre del botó de llengua: català, occità, francès, anglès, alemany, italià, portuguès.
-const LANGS = ['ca','oc','fr','en','de','it','es'];
-// 'oc' és l'aranès (occità de la Val d'Aran); al botó hi diu AR
-const LANG_LABEL = { oc:'AR' };
+// Ordre del botó de llengua: català, francès, anglès, alemany, italià, espanyol.
+const LANGS = ['ca','fr','en','de','it','es'];
+const LANG_LABEL = {};
 const LANG_STORAGE_KEY = 'kasioLang';
 let currentLang = 'ca';
 
@@ -1417,22 +1468,6 @@ const I18N = {
       treball:'Festa del Treball', pasquaGranada:'Pasqua Granada (festa local)', santJoan:'Sant Joan', assumpcio:'Assumpció',
       diada:'Diada Nacional de Catalunya', merce:'La Mercè (festa local)', hispanitat:"Festa Nacional d'Espanya",
       totsSants:'Tots Sants', constitucio:'Dia de la Constitució', immaculada:'La Immaculada', nadal:'Nadal', santEsteve:'Sant Esteve' }
-  },
-  oc: {
-    name: 'Aranés',
-    days: ['DG','DL','DM','DC','DJ','DV','DS'],
-    months: ['GÈR','HEREUÈR','MARÇ','ABRIU','MAI','JUNH','JUNHSÈGA','AGOST','SETEME','OCTOBRE','NOVEME','DESEME'],
-    // a la fila de la data, el mes sencer: «JUNH» i «JUNHSÈGA» començarien igual
-    monthsShort: ['GÈR','HEREUÈR','MARÇ','ABRIU','MAI','JUNH','JUNHSÈGA','AGOST','SETEME','OCTOBRE','NOVEME','DESEME'],
-    ui: { light:'LUM', cal:'CAL', mTemp:'TEMP', mHumid:'UMIT', mFeels:'SENS', mAlt:'ALT',
-          loading:'CARGANT', unknownPlace:'LÒC DESCONEGUT', approx:'(aprox.)', approxOnly:'LÒC APROX.', na:'N/D',
-          speakLabel:'ORA', night:'Vista de nuet', rac1:'Escotar La Competència (RAC1)', speak:'Díder era ora',
-          chime:'Anonciar es ores', lang:'Lengua', prev:'Mes anterior', next:'Mes seguent',
-          chimeOn:'Anóncia des ores activada.', chimeOff:'Anóncia des ores desactivada.' },
-    holidays: { capdany:"Cap d'An", reis:'Reis', divSant:'Diuendres Sant', dillPasqua:'Diluns de Pasqua',
-      treball:'Hèsta deth Trabalh', pasquaGranada:'Diluns de Pentacòsta (hèsta locau)', santJoan:'Sant Joan', assumpcio:'Assompcion',
-      diada:'Hèsta Nacionau de Catalonha', merce:'Era Mercè (hèsta locau)', hispanitat:"Hèsta Nacionau d'Espanha",
-      totsSants:'Totsants', constitucio:'Dia dera Constitucion', immaculada:'Immaculada Concepcion', nadal:'Nadau', santEsteve:'Sant Estèue' }
   },
   fr: {
     name: 'Français',
@@ -1542,19 +1577,6 @@ function phraseCa(H, M){
   return `${quarts === 1 ? 'És' : 'Són'} ${qNom}${extra} ${caDe(next)} ${per}.`;
 }
 
-// Aranès: «Ei era ua», «Son es tres e quart», «Son es quate mens quart»
-function phraseOc(H, M){
-  const W = ['dotze','ua','dues','tres','quate','cinc','sies','sèt','ueit','nau','dètz','onze'];
-  const name = h => { const n = hh24(h) % 12 || 12; return n === 1 ? 'era ua' : `es ${W[n % 12]}`; };
-  const verb = h => (hh24(h) % 12 === 1 ? 'Ei' : 'Son');
-  if(M === 0)  return `${verb(H)} ${name(H)}.`;
-  if(M === 15) return `${verb(H)} ${name(H)} e quart.`;
-  if(M === 30) return `${verb(H)} ${name(H)} e mieja.`;
-  if(M === 45) return `${verb(H+1)} ${name(H+1)} mens quart.`;
-  if(M < 30)   return `${verb(H)} ${name(H)} e ${M}.`;
-  return `${verb(H+1)} ${name(H+1)} mens ${60 - M}.`;
-}
-
 function phraseFr(H, M){
   const name = h => { const v = hh24(h); if(v === 0) return 'minuit'; if(v === 12) return 'midi'; const n = v % 12 || 12; return n === 1 ? 'une heure' : `${n} heures`; };
   const per = h => { const v = hh24(h); if(v === 0 || v === 12) return ''; if(v < 12) return ' du matin'; if(v < 18) return " de l'après-midi"; return ' du soir'; };
@@ -1619,7 +1641,7 @@ function phraseEs(H, M){
   return `${verb(H+1)} ${name(H+1)} menos ${60 - M}${per(H+1)}.`;
 }
 
-const TIME_PHRASE = { ca:phraseCa, oc:phraseOc, fr:phraseFr, en:phraseEn, de:phraseDe, it:phraseIt, es:phraseEs };
+const TIME_PHRASE = { ca:phraseCa, fr:phraseFr, en:phraseEn, de:phraseDe, it:phraseIt, es:phraseEs };
 function timePhrase(H, M){ return (TIME_PHRASE[currentLang] || phraseCa)(H, M); }
 
 
@@ -1708,11 +1730,9 @@ function getFestius(year){
 }
 
 /* ===================== VEU I AVÍS DE LES HORES ===================== */
-// Veu preferida per a cada llengua. L'occità gairebé no té veus de síntesi
-// als mòbils: s'intenta, i si no n'hi ha es llegeix amb veu catalana,
-// que és la que s'hi assembla més.
+// Veu preferida per a cada llengua.
 const SPEECH_LANGS = {
-  ca:['ca-ES','ca'], oc:['oc-FR','oc','ca-ES','ca'], fr:['fr-FR','fr'], en:['en-GB','en'],
+  ca:['ca-ES','ca'], fr:['fr-FR','fr'], en:['en-GB','en'],
   de:['de-DE','de'], it:['it-IT','it'], es:['es-ES','es']
 };
 let voiceList = [];
@@ -1737,8 +1757,6 @@ function pickVoice(lang){
 // Xifres en lletra per a la frase escrita (1–29: minuts i hores)
 const NUM_WORDS = {
   ca: 'un dos tres quatre cinc sis set vuit nou deu onze dotze tretze catorze quinze setze disset divuit dinou vint vint-i-un vint-i-dos vint-i-tres vint-i-quatre vint-i-cinc vint-i-sis vint-i-set vint-i-vuit vint-i-nou',
-  // aranès: «minuta» és femení → ua, dues, vint-e-ua, vint-e-dues (normes occitanes)
-  oc: 'ua dues tres quate cinc sies sèt ueit nau dètz onze dotze tretze catòrze quinze setze dètz-e-sèt dètz-e-ueit dètz-e-nau vint vint-e-ua vint-e-dues vint-e-tres vint-e-quate vint-e-cinc vint-e-sies vint-e-sèt vint-e-ueit vint-e-nau',
   fr: 'une deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize dix-sept dix-huit dix-neuf vingt vingt-et-un vingt-deux vingt-trois vingt-quatre vingt-cinq vingt-six vingt-sept vingt-huit vingt-neuf',
   en: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twenty-one twenty-two twenty-three twenty-four twenty-five twenty-six twenty-seven twenty-eight twenty-nine',
   de: 'eins zwei drei vier fünf sechs sieben acht neun zehn elf zwölf dreizehn vierzehn fünfzehn sechzehn siebzehn achtzehn neunzehn zwanzig einundzwanzig zweiundzwanzig dreiundzwanzig vierundzwanzig fünfundzwanzig sechsundzwanzig siebenundzwanzig achtundzwanzig neunundzwanzig',
@@ -1770,8 +1788,7 @@ function speak(text, caption = false){
   const u = new SpeechSynthesisUtterance(text);
   const v = pickVoice(currentLang);
   // Sense veu trobada: demanem la llengua i que el sistema triï la veu.
-  // Per a l'occità, demanem català (millor que la veu per defecte del mòbil).
-  if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = currentLang === 'oc' ? 'ca-ES' : SPEECH_LANGS[currentLang][0]; }
+  if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = SPEECH_LANGS[currentLang][0]; }
   u.rate = 0.95;
   const btn = document.getElementById('speakBtn');
   let ducked = false;
@@ -1859,13 +1876,6 @@ const I18N_EXTRA = {
     aq:['BONA','RAONABLE','MODERADA','DOLENTA','MOLT DOLENTA','EXTREMA'],
     alerts:{storm:'TEMPESTA',rain:'PLUJA FORTA',wind:'VENT FORT',heat:'CALOR',frost:'GLAÇADA',snow:'NEU'},
     compass:['N','NE','E','SE','S','SO','O','NO'] },
-  oc:{ ui:{ zzAria:'Mòde Zz: ecran ences e alarmes prèstes', zzNoAlarm:'CAP ALARMA', zzTap:'TOCA ER ECRAN', sendAlarm:'Botar-la en relòtge deth mobil', onlyPhone:'AÇÒ SONQUE FONCIONE EN MOBIL', iosShortcutHelp:'CAU ER ACORCHI «{n}» ENA APP DRECERES (UN SOL CÒP)', once:'UN CÒP', prevYear:'An anterior', nextYear:'An seguent', today:'Tornar a uei', soundLabel:'SON', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA ENTÀ CAMBIAR', everyDay:'CADA DIA', stopAlarm:'ARRÈSTA', pAvisos:'AVISI', pUbicacio:'LÒC', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
-      next12:'PRÒXIMES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RÀF.', rRain6:'PLOJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPÈU', live:'EN DIRÈCTE',
-      noData:'CAP DE DADA', radioFail:"NON S'A POGUT SINTONIZAR", podFail:"NON S'A POGUT CARGAR", noNews:'CAP DE TÍTOL', windFoot:'VENT EN KM/H · OPEN-METEO' },
-    wx:{clear:'Ceu seren',mainly:'Quasi seren',partly:'Partiaument ennivolat',overcast:'Cubèrt',fog:'Broma',drizzle:'Plovina',rain:'Ploja',showers:'Raishades',freezing:'Ploja gelada',snow:'Nhèu',storm:'Tempèsta'},
-    aq:['BONA','ACCEPTABLA','MODERADA','DOLENTA','FÒRÇA DOLENTA','EXTRÈMA'],
-    alerts:{storm:'TEMPÈSTA',rain:'PLOJA FÒRTA',wind:'VENT FÒRT',heat:'CALOR',frost:'GELADA',snow:'NHÈU'},
-    compass:['N','NE','E','SE','S','SO','O','NO'] },
   fr:{ ui:{ zzAria:'Mode Zz : écran allumé et réveils prêts', zzNoAlarm:'AUCUN RÉVEIL', zzTap:'TOUCHEZ L\'ÉCRAN', sendAlarm:'L\'ajouter à l\'horloge du téléphone', onlyPhone:'NE FONCTIONNE QUE SUR LE TÉLÉPHONE', iosShortcutHelp:'IL FAUT LE RACCOURCI «{n}» DANS L\'APP RACCOURCIS (UNE SEULE FOIS)', once:'UNE FOIS', prevYear:'Année précédente', nextYear:'Année suivante', today:"Revenir à aujourd'hui", soundLabel:'SON', alarmLabel:'RÉVEIL', alarmAria:'Réveils', pAlarmes:'RÉVEILS', tapChange:'TOUCHER POUR CHANGER', everyDay:'CHAQUE JOUR', stopAlarm:'STOP', pAvisos:'ALERTES', pUbicacio:'LIEU', pTemps:'MÉTÉO', pAire:'AIR', pRadio:'RADIO', pPodcasts:'PODCASTS', pNoticies:'INFOS',
       next12:'PROCHAINES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RAF.', rRain6:'PLUIE 6H', rProb:'PROB.', aqTitle:'INDICE EUROPÉEN', live:'EN DIRECT',
       noData:'PAS DE DONNÉES', radioFail:'IMPOSSIBLE DE CAPTER', podFail:'CHARGEMENT IMPOSSIBLE', noNews:'AUCUN TITRE', windFoot:'VENT EN KM/H · OPEN-METEO' },
@@ -1908,8 +1918,8 @@ Object.keys(I18N_EXTRA).forEach(l => {
   I18N[l].wx = e.wx; I18N[l].aq = e.aq; I18N[l].alerts = e.alerts; I18N[l].compass = e.compass;
 });
 
-// Format numèric segons la llengua (coma decimal on toca). L'occità, com el català.
-function numLocale(){ return currentLang === 'oc' ? 'ca' : currentLang; }
+// Format numèric segons la llengua (coma decimal on toca).
+function numLocale(){ return currentLang; }
 function fmtNum(x, dec){
   try{ return Number(x).toLocaleString(numLocale(), { minimumFractionDigits:dec, maximumFractionDigits:dec }); }
   catch(err){ return Number(x).toFixed(dec); }
@@ -2056,13 +2066,13 @@ function setupCalNavButtons(){
 /* ===================== FINESTRES EN RODA ===================== */
 // Lliscar cap amunt: finestra següent; cap avall: l'anterior. Després de
 // l'última es torna al calendari. Els avisos només hi són quan n'hi ha.
-const VIEW_ORDER = ['cal', 'alarmes', 'avisos', 'ubicacio', 'temps', 'aire', 'radio', 'podcasts', 'noticies'];
+const VIEW_ORDER = ['cal', 'alarmes', 'avisos', 'ubicacio', 'temps', 'aire', 'radio', 'podcasts', 'noticies', 'guia'];
 let currentView = 'cal';
 let activeAlerts = [];
 let swipeHandled = false;
 
-// Els podcasts (RAC1) només surten en català i occità/aranès
-const PODCAST_LANGS = ['ca', 'oc'];
+// Els podcasts (RAC1) només surten en català
+const PODCAST_LANGS = ['ca'];
 function visibleViews(){
   return VIEW_ORDER.filter(v => (v !== 'avisos' || activeAlerts.length) && (v !== 'podcasts' || PODCAST_LANGS.includes(currentLang)));
 }
@@ -2134,6 +2144,10 @@ function setupScreenGestures(){
       done = true; markSwipe();
       navigateMonth(dx < 0 ? 1 : -1);
     }
+    else if(currentView === 'guia' && Math.abs(dx) > T_PX && Math.abs(dx) > Math.abs(dy)){
+      done = true; markSwipe();
+      guideStep(dx < 0 ? 1 : -1);
+    }
   });
   screen.addEventListener('pointerup', reset);
   screen.addEventListener('pointercancel', reset);
@@ -2152,6 +2166,7 @@ function setupScreenGestures(){
     if(now - lastWheel < 450) return;
     if(Math.abs(e.deltaX) > Math.abs(e.deltaY)){
       if(currentView === 'cal' && Math.abs(e.deltaX) > 10){ lastWheel = now; navigateMonth(e.deltaX > 0 ? 1 : -1); }
+      if(currentView === 'guia' && Math.abs(e.deltaX) > 10){ lastWheel = now; guideStep(e.deltaX > 0 ? 1 : -1); }
       return;
     }
     if(Math.abs(e.deltaY) < 8) return;
@@ -2202,7 +2217,7 @@ let lastAir = null;
 
 async function fetchPlaceName(lat, lon, isFallback){
   lastCoords = { lat, lon, isFallback };
-  const geoLang = currentLang === 'oc' ? 'ca' : currentLang;
+  const geoLang = currentLang;
   try{
     const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${geoLang}`);
     const d = await res.json();
@@ -2645,7 +2660,7 @@ if('mediaSession' in navigator){
 
 /* ===================== RÀDIO EN DIRECTE (segons la llengua) ===================== */
 // Les mateixes emissores que el model per al català, francès, alemany, italià
-// i anglès. Per a l'occità i el portuguès, el flux es busca a Radio Browser
+// i anglès. Si una emissora no té flux fix, es busca a Radio Browser
 // (rb: nom i país) en el moment de sintonitzar.
 const RADIO_SETS = {
   ca: [
@@ -2655,14 +2670,6 @@ const RADIO_SETS = {
     { id:'r-rac105', nom:'RAC105', audio:'https://playerservices.streamtheworld.com/api/livestream-redirect/RAC105.mp3', web:'https://www.rac105.cat/', rb:{ name:'RAC105', cc:'ES' } },
     { id:'r-clasica', nom:'Radio Clásica', audio:'https://rtvelivestream.rtve.es/rtvesec/rne/rne_r2_main.m3u8', web:'https://www.rtve.es/radio/radioclasica/', rb:{ name:'Radio Clasica', cc:'ES' } },
     { id:'r-bbc', nom:'BBC World Service', audio:'https://stream.live.vc.bbcmedia.co.uk/bbc_world_service', web:'https://www.bbc.com/audio', rb:{ name:'BBC World Service', cc:'GB' } }
-  ],
-  // Aranès: no hi ha cap emissora en aranès tot el dia; ràdios en occità,
-  // començant per Ràdio País (gascó, la variant més propera a l'aranès)
-  oc: [
-    { id:'oc-pais', nom:'Ràdio País', audio:'https://stunnel2.cyber-streaming.com:9272/stream', web:'https://www.radiopais.fr/', rb:{ name:'Radio Pais', cc:'FR' } },
-    { id:'oc-lengadoc', nom:"Ràdio Lenga d'Òc", audio:null, web:'https://www.radiolengadoc.com/', rb:{ name:"Lenga d", cc:'FR' } },
-    { id:'oc-occitania', nom:'Ràdio Occitania', audio:null, web:'https://radio-occitania.com/', rb:{ name:'Occitania', cc:'FR' } },
-    { id:'oc-lengadoceu', nom:'Radio Lengadoc', audio:null, web:'https://www.lengadoc.eu/', rb:{ name:'Lengadoc', cc:'FR' } }
   ],
   fr: [
     { id:'fr-franceinfo', nom:'franceinfo', audio:'https://icecast.radiofrance.fr/franceinfo-midfi.mp3?id=radiofrance', web:'https://www.radiofrance.fr/franceinfo', rb:{ name:'franceinfo', cc:'FR' } },
@@ -2791,31 +2798,8 @@ function latestPerDay(clips, days, hour){
   return Object.values(perDay).sort((a, b) => b.data - a.data);
 }
 
-const programCache = { competencia:null, via:null, aran:null };
+const programCache = { competencia:null, via:null };
 
-// En aranès: «Eth maitin d'Aran» (Catalunya Ràdio, en aranès), del podcast
-// públic de 3Cat. Primer directament; si el navegador no ho deixa, pels intermediaris.
-const ARAN_FEED = 'https://dinamics.3cat.cat/public/podcast/catradio/xml/2/9/podprograma892.xml';
-function podcastItems(xml){
-  const doc = new DOMParser().parseFromString(xml, 'text/xml');
-  return [...doc.querySelectorAll('item')].map(it => {
-    const enc = it.querySelector('enclosure');
-    return {
-      id:'aran-' + ((it.querySelector('guid') || {}).textContent || (enc && enc.getAttribute('url')) || ''),
-      titol:((it.querySelector('title') || {}).textContent || '').trim(),
-      data:new Date((it.querySelector('pubDate') || {}).textContent || ''),
-      audio:enc ? enc.getAttribute('url') : '',
-      web:((it.querySelector('link') || {}).textContent || '').trim()
-    };
-  }).filter(cl => cl.audio && !isNaN(cl.data));
-}
-function aranClips(){
-  const tryUrl = u => withTimeout(fetch(u, { cache:'no-store' }), 10000)
-    .then(r => { if(!r.ok) throw new Error('http'); return r.text(); })
-    .then(x => { const l = podcastItems(x); if(!l.length) throw new Error('buit'); return l; });
-  const chain = [() => tryUrl(ARAN_FEED), ...PROXIES.map(px => () => tryUrl(px(ARAN_FEED)))];
-  return chain.reduce((p, f) => p.catch(f), Promise.reject(new Error('inici')));
-}
 let programsLoadedAt = 0;
 let programsBusy = false;
 
@@ -2846,28 +2830,17 @@ function renderPrograms(){
   const lc = document.getElementById('compRows'), lv = document.getElementById('viaRows');
   const set = (id, t) => { const el = document.getElementById(id); if(el) el.textContent = t; };
   const loadingRow = `<div class="status">${esc(T().ui.loading)}</div>`;
-  if(currentLang === 'oc'){
-    // Aranès: Eth maitin d'Aran a dalt i, a sota, els dos darrers de La Competència
-    set('podSide', '3CAT · RAC1');
-    set('podTitle1', "ETH MAITIN D'ARAN");
-    set('podTitle2', 'LA COMPETÈNCIA');
-    if(programCache.aran) programRows(lc, programCache.aran, "Eth maitin d'Aran"); else lc.innerHTML = loadingRow;
-    const comp = programCache.competencia;
-    if(comp) programRows(lv, comp === 'error' ? comp : comp.slice(0, 2), 'La Competència'); else lv.innerHTML = loadingRow;
-  } else {
-    set('podSide', 'RAC1');
-    set('podTitle1', 'LA COMPETÈNCIA');
-    set('podTitle2', 'VIA LLIURE · 7 H');
-    if(programCache.competencia) programRows(lc, programCache.competencia, 'La Competència'); else lc.innerHTML = loadingRow;
-    if(programCache.via) programRows(lv, programCache.via, 'Via lliure'); else lv.innerHTML = loadingRow;
-  }
+  set('podSide', 'RAC1');
+  set('podTitle1', 'LA COMPETÈNCIA');
+  set('podTitle2', 'VIA LLIURE · 7 H');
+  if(programCache.competencia) programRows(lc, programCache.competencia, 'La Competència'); else lc.innerHTML = loadingRow;
+  if(programCache.via) programRows(lv, programCache.via, 'Via lliure'); else lv.innerHTML = loadingRow;
   updatePlayState();
 }
 
 function loadPrograms(force){
   if(programsBusy) return;
-  const needAran = currentLang === 'oc' && !Array.isArray(programCache.aran);
-  if(!force && !needAran && Date.now() - programsLoadedAt < 10 * 60 * 1000){ renderPrograms(); return; }
+  if(!force && Date.now() - programsLoadedAt < 10 * 60 * 1000){ renderPrograms(); return; }
   programsBusy = true;
   renderPrograms();
   const p1 = loadClips(PROGRAMS.competencia).then(clips => {
@@ -2880,12 +2853,7 @@ function loadPrograms(force){
     if(!list.length) throw new Error('buit');
     programCache.via = list;
   }).catch(() => { if(!Array.isArray(programCache.via)) programCache.via = 'error'; });
-  const p3 = currentLang !== 'oc' ? Promise.resolve() : aranClips().then(clips => {
-    const list = clips.sort((a, b) => b.data - a.data).slice(0, 5).map(cl => Object.assign(cl, { m:madridParts(cl.data) }));
-    if(!list.length) throw new Error('buit');
-    programCache.aran = list;
-  }).catch(() => { if(!Array.isArray(programCache.aran)) programCache.aran = 'error'; });
-  Promise.all([p1, p2, p3]).then(() => {
+  Promise.all([p1, p2]).then(() => {
     programsBusy = false;
     programsLoadedAt = Date.now();
     renderPrograms();
@@ -2966,19 +2934,11 @@ function feedHeadlines(rss){
 }
 
 // Per ordre de preferència: si una font no respon, es prova la següent.
-//  - Occità: Jornalet (no hi ha agència de notícies en occità).
 //  - Portuguès: l'agència Lusa (via Google Notícies), Observador i RTP.
 const NEWS_FEEDS = {
   ca: [
     { label:'ACN', load:() => headlinesViaProxy(0) },
     { label:'ACN', load:() => googleHeadlines('site:acn.cat when:1d', 'ca', 'ES', /\s+-\s+(ACN|acn\.cat|Agència Catalana de Notícies)\s*$/i) }
-  ],
-  // Aranès: no hi ha cap agència ni diari en aranès amb fil de notícies.
-  // Jornalet (en occità, també publica en aranès) i, si no respon, 3Cat sobre l'Aran.
-  oc: [
-    { label:'JORNALET', load:() => googleHeadlines('site:jornalet.com when:14d', 'fr', 'FR', /\s+-\s+Jornalet.*$/i) },
-    { label:'JORNALET', load:() => feedHeadlines('https://www.jornalet.com/feed') },
-    { label:'3CAT · ARAN', load:() => googleHeadlines("site:3cat.cat Aran when:7d", 'ca', 'ES', /\s+-\s+3Cat.*$/i) }
   ],
   it: [
     { label:'ANSA', load:() => feedHeadlines('https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml') },
@@ -3079,13 +3039,18 @@ function cycleDayTheme(e){
   nextDayTheme(onWatch);
 }
 // Tons del mode Zz: taronja (el de sempre), blau, verd, groc i cian
-const ZZ_TONES = ['', 'blau', 'verd', 'groc', 'cian'];
+const ZZ_TONES = ['', 'blau', 'verd', 'groc', 'cian',
+  // combinacions: rellotge d'un color + finestra del temps d'un altre
+  'taronja+groc', 'blau+cian', 'verd+groc', 'cian+taronja', 'blau+groc', 'verd+cian'];
 const ZZ_TONE_KEY = 'kasioZzTone';
 let zzTone = 0;
 try{ zzTone = Math.max(0, ZZ_TONES.indexOf(localStorage.getItem(ZZ_TONE_KEY) || '')); }catch(err){}
 function applyZzTone(){
-  const t = ZZ_TONES[zzTone];
+  const [clock, wx] = ZZ_TONES[zzTone].split('+');
+  const t = clock === 'taronja' ? '' : clock;
   if(t) document.documentElement.dataset.zztone = t; else delete document.documentElement.dataset.zztone;
+  const p = document.getElementById('zzWx');
+  if(p){ if(wx) p.dataset.wxtone = wx; else delete p.dataset.wxtone; }
 }
 function cycleZzTone(){
   zzTone = (zzTone + 1) % ZZ_TONES.length;
@@ -3137,7 +3102,7 @@ function buildLangButtons(){
 
 function applyStaticTexts(){
   const t = T();
-  document.documentElement.lang = currentLang === 'oc' ? 'oc-aranes' : currentLang;
+  document.documentElement.lang = currentLang;
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const v = t.ui[el.dataset.i18n];
     if(v != null) el.textContent = v;
@@ -3154,6 +3119,7 @@ function applyStaticTexts(){
   const lr = document.getElementById('langRow');
   if(lr) lr.setAttribute('aria-label', t.ui.lang);
   renderPlace();
+  if(typeof renderGuide === 'function') renderGuide();
 }
 
 function initLanguage(){
@@ -4093,7 +4059,7 @@ function setupMatrix(){
 // Cada toc: 15 → 30 → 45 → 60 → 90 min → desactivat. En acabar, el so baixa a poc a poc i s'atura.
 const SLEEP_STEPS = [0, 15, 30, 45, 60, 90];
 const SLEEP_FADE_MS = 10 * 1000;
-const SLEEP_ARIA = { ca:'Temporitzador de la ràdio', oc:'Temporizador dera ràdio', fr:'Minuterie de la radio', en:'Radio sleep timer', de:'Radio-Schlummertimer', it:'Timer della radio', es:'Temporizador de la radio' };
+const SLEEP_ARIA = { ca:'Temporitzador de la ràdio', fr:'Minuterie de la radio', en:'Radio sleep timer', de:'Radio-Schlummertimer', it:'Timer della radio', es:'Temporizador de la radio' };
 const sleepT = { step:0, end:0, fading:false, fadeTimer:null };
 const CAN_SET_VOLUME = (() => { try{ const a = new Audio(); a.volume = 0.5; return Math.abs(a.volume - 0.5) < 0.01; }catch(e){ return false; } })();
 function renderSleep(){
@@ -4214,7 +4180,7 @@ function zzWxIcon(code, night){
   return `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 }
 const ZZWX_TXT = {
-  ca:['MÀX','MÍN','PLUJA'], oc:['MÀX','MÍN','PLÒJA'], fr:['MAX','MIN','PLUIE'], en:['HIGH','LOW','RAIN'],
+  ca:['MÀX','MÍN','PLUJA'], fr:['MAX','MIN','PLUIE'], en:['HIGH','LOW','RAIN'],
   de:['MAX','MIN','REGEN'], it:['MAX','MIN','PIOGGIA'], es:['MÁX','MÍN','LLUVIA']
 };
 function renderZzWx(){
@@ -4283,6 +4249,281 @@ function setupZzExtras(){
   });
 }
 
+
+/* ===================== GUIA, AJUDA «?» I MANTENIR PREMUT ===================== */
+// Textos de la guia en cada llengua: pàgines (finestra Guia), etiquetes (botó ?) i explicacions (mantenir premut)
+const GUIDE = {
+  ca:{
+    label:'GUIA', foot:'LLISCA ↔ O TOCA ‹ › · ↕ ALTRES FINESTRES',
+    pages:[
+      ['BOTONS', [['LLUM','Vista de nit, amb colors foscos'],['Zz','Rellotge de tauleta: pantalla encesa i alarmes a punt'],['HORA',"Diu l'hora en veu alta i l'escriu"],['SO','Avís a cada hora en punt'],['ALARMA',"Obre les alarmes; si n'hi ha una sonant, l'atura"]]],
+      ['RELLOTGE', [['TOC','Canvia el color'],['2 TOCS','Pluja de codi; 2 tocs més la treuen'],['LLISCA','Hora · data · crono · compte enrere'],['CA FR EN…',"Idioma de l'app"]]],
+      ['FINESTRES', [['LLISCA ↕','Calendari, alarmes, temps, aire, ràdio, notícies…'],['LLISCA ↔','Al calendari, canvia de mes'],['DIA VERMELL','Toca-hi per veure quina festa és'],['TOC','Canvia el color']]],
+      ['CRONÒMETRE', [['START / STOP','Engega i atura; en aturar desa el darrer parcial'],['LAP','Parcial de cada rellevista'],['CINTA','Parcials i acumulats; llisca-la de costat'],['RESET','Amb el crono aturat, ho esborra']]],
+      ['COMPTE ENRERE', [['XIFRES','Toca-les per posar el temps'],['+1 / +5','Afegeix minuts'],['START','Engega; al 0 sona l\'alarma'],['Zz','Si no toques res en 10 s, passa a Zz']]],
+      ['MODE Zz', [['TOC','Canvia el color: 5 colors i 6 parelles'],['LLISCA ↔','Mostra el temps al costat'],['LLISCA ↕','Més o menys llum'],['2 TOCS','Pluja de codi']]],
+      ['RÀDIO', [['EMISSORA',"Toca-la per escoltar; un altre toc l'atura"],['⏾','Temporitzador: 15, 30, 45, 60 o 90 min'],['PODCASTS','La Competència i Via lliure']]],
+      ['AJUDA', [['?','Etiquetes sobre la pantalla; un toc les treu'],['MANTÉN PREMUT','Qualsevol botó, per saber què fa']]]
+    ],
+    ov:{ watch1:'TOC: COLOR · 2 TOCS: PLUJA DE CODI', watch2:'LLISCA: HORA · DATA · CRONO · COMPTE ENRERE', lang:'IDIOMA',
+         night:'VISTA DE NIT', zz:'TAULETA DE NIT', speak:"DIU L'HORA", chime:'AVÍS CADA HORA', alarm:'ALARMES',
+         cal1:'LLISCA ↕: ALTRES FINESTRES', cal2:'LLISCA ↔: MESOS', cal3:'TOC: COLOR', close:'TOCA PER TANCAR · MANTÉN PREMUT UN BOTÓ PER SABER QUÈ FA' },
+    tip:{ nightToggle:'Vista de nit: colors foscos per a la nit', zzBtn:'Mode Zz: rellotge de tauleta, pantalla sempre encesa i alarmes a punt',
+          speakBtn:"Diu l'hora en veu alta i l'escriu a sota", chimeToggle:"Activa o desactiva l'avís de cada hora en punt",
+          alarmBtn:"Obre les alarmes. Si n'hi ha una sonant, l'atura", helpBtn:'Mostra què fa cada part de la pantalla',
+          sleepBtn:'Temporitzador de la ràdio: cada toc 15, 30, 45, 60, 90 min o OFF', stwRight:'Engega o atura el cronòmetre',
+          stwLeft:'Crono en marxa: parcial (LAP). Aturat: ho esborra (RESET)', tmrStart:'Engega o atura el compte enrere',
+          tmrReset:'Torna el compte enrere al temps inicial', tmrPlus1:'Afegeix 1 minut', tmrPlus5:'Afegeix 5 minuts',
+          guidePrev:'Pàgina anterior de la guia', guideNext:'Pàgina següent de la guia', lang:"Canvia l'idioma de l'app" }
+  },
+  fr:{
+    label:'GUIDE', foot:'GLISSEZ ↔ OU TOUCHEZ ‹ › · ↕ AUTRES FENÊTRES',
+    pages:[
+      ['BOUTONS', [['LUM.','Mode nuit, couleurs sombres'],['Zz','Réveil de chevet : écran allumé et réveils prêts'],['HEURE',"Dit l'heure à voix haute et l'écrit"],['SON','Annonce de chaque heure pile'],['RÉVEIL','Ouvre les réveils ; arrête celui qui sonne']]],
+      ['MONTRE', [['TOUCHER','Change la couleur'],['2 TOUCHERS','Pluie de code ; 2 de plus pour la retirer'],['GLISSER','Heure · date · chrono · compte à rebours'],['CA FR EN…',"Langue de l'app"]]],
+      ['FENÊTRES', [['GLISSER ↕','Calendrier, réveils, météo, air, radio, infos…'],['GLISSER ↔','Dans le calendrier, change de mois'],['JOUR ROUGE','Touchez-le pour voir la fête'],['TOUCHER','Change la couleur']]],
+      ['CHRONO', [['START / STOP','Démarre et arrête ; garde le dernier temps'],['LAP','Temps de chaque relayeur'],['BANDE','Temps et cumuls ; glissez-la de côté'],['RESET','Chrono arrêté : tout effacer']]],
+      ['COMPTE À REBOURS', [['CHIFFRES','Touchez-les pour régler la durée'],['+1 / +5','Ajoute des minutes'],['START','Démarre ; à 0 le réveil sonne'],['Zz','Sans toucher pendant 10 s, passe en Zz']]],
+      ['MODE Zz', [['TOUCHER','Change la couleur : 5 couleurs et 6 paires'],['GLISSER ↔','Affiche la météo à côté'],['GLISSER ↕','Plus ou moins de lumière'],['2 TOUCHERS','Pluie de code']]],
+      ['RADIO', [['STATION',"Touchez-la pour écouter ; encore une fois pour l'arrêter"],['⏾','Minuterie : 15, 30, 45, 60 ou 90 min'],['PODCASTS','En catalan']]],
+      ['AIDE', [['?','Étiquettes sur l\'écran ; un toucher les retire'],['APPUI LONG','Sur un bouton, pour savoir ce qu\'il fait']]]
+    ],
+    ov:{ watch1:'TOUCHER : COULEUR · 2 TOUCHERS : PLUIE DE CODE', watch2:'GLISSER : HEURE · DATE · CHRONO · REBOURS', lang:'LANGUE',
+         night:'MODE NUIT', zz:'CHEVET', speak:"DIT L'HEURE", chime:'CHAQUE HEURE', alarm:'RÉVEILS',
+         cal1:'GLISSER ↕ : AUTRES FENÊTRES', cal2:'GLISSER ↔ : MOIS', cal3:'TOUCHER : COULEUR', close:'TOUCHEZ POUR FERMER · APPUI LONG SUR UN BOUTON POUR SAVOIR CE QU\'IL FAIT' },
+    tip:{ nightToggle:'Mode nuit : couleurs sombres', zzBtn:'Mode Zz : réveil de chevet, écran toujours allumé et réveils prêts',
+          speakBtn:"Dit l'heure à voix haute et l'écrit", chimeToggle:"Active ou coupe l'annonce de chaque heure pile",
+          alarmBtn:'Ouvre les réveils. Arrête celui qui sonne', helpBtn:"Montre ce que fait chaque partie de l'écran",
+          sleepBtn:'Minuterie de la radio : 15, 30, 45, 60, 90 min ou OFF', stwRight:'Démarre ou arrête le chrono',
+          stwLeft:'En marche : temps intermédiaire (LAP). Arrêté : effacer (RESET)', tmrStart:'Démarre ou arrête le compte à rebours',
+          tmrReset:'Revient à la durée de départ', tmrPlus1:'Ajoute 1 minute', tmrPlus5:'Ajoute 5 minutes',
+          guidePrev:'Page précédente du guide', guideNext:'Page suivante du guide', lang:"Change la langue de l'app" }
+  },
+  en:{
+    label:'GUIDE', foot:'SWIPE ↔ OR TAP ‹ › · ↕ OTHER WINDOWS',
+    pages:[
+      ['BUTTONS', [['LIGHT','Night view, dark colours'],['Zz','Bedside clock: screen on and alarms ready'],['TIME','Says the time aloud and writes it'],['SOUND','Chime every hour on the hour'],['ALARM','Opens the alarms; stops one that is ringing']]],
+      ['CLOCK', [['TAP','Changes the colour'],['DOUBLE TAP','Code rain; double tap again to remove it'],['SWIPE','Time · date · stopwatch · countdown'],['CA FR EN…','App language']]],
+      ['WINDOWS', [['SWIPE ↕','Calendar, alarms, weather, air, radio, news…'],['SWIPE ↔','In the calendar, changes month'],['RED DAY','Tap it to see the holiday'],['TAP','Changes the colour']]],
+      ['STOPWATCH', [['START / STOP','Starts and stops; keeps the last split'],['LAP','Split for each relay swimmer'],['TAPE','Splits and totals; swipe it sideways'],['RESET','When stopped, clears everything']]],
+      ['COUNTDOWN', [['DIGITS','Tap them to set the time'],['+1 / +5','Adds minutes'],['START','Starts; the alarm rings at 0'],['Zz','After 10 s untouched, goes to Zz']]],
+      ['Zz MODE', [['TAP','Changes the colour: 5 colours and 6 pairs'],['SWIPE ↔','Shows the weather alongside'],['SWIPE ↕','More or less light'],['DOUBLE TAP','Code rain']]],
+      ['RADIO', [['STATION','Tap to listen; tap again to stop'],['⏾','Sleep timer: 15, 30, 45, 60 or 90 min'],['PODCASTS','In Catalan']]],
+      ['HELP', [['?','Labels over the screen; a tap removes them'],['LONG PRESS','Any button, to see what it does']]]
+    ],
+    ov:{ watch1:'TAP: COLOUR · DOUBLE TAP: CODE RAIN', watch2:'SWIPE: TIME · DATE · STOPWATCH · COUNTDOWN', lang:'LANGUAGE',
+         night:'NIGHT VIEW', zz:'BEDSIDE', speak:'SAYS THE TIME', chime:'HOURLY CHIME', alarm:'ALARMS',
+         cal1:'SWIPE ↕: OTHER WINDOWS', cal2:'SWIPE ↔: MONTHS', cal3:'TAP: COLOUR', close:'TAP TO CLOSE · LONG-PRESS A BUTTON TO SEE WHAT IT DOES' },
+    tip:{ nightToggle:'Night view: dark colours for night time', zzBtn:'Zz mode: bedside clock, screen always on and alarms ready',
+          speakBtn:'Says the time aloud and writes it below', chimeToggle:'Turns the hourly chime on or off',
+          alarmBtn:'Opens the alarms. Stops one that is ringing', helpBtn:'Shows what each part of the screen does',
+          sleepBtn:'Radio sleep timer: each tap 15, 30, 45, 60, 90 min or OFF', stwRight:'Starts or stops the stopwatch',
+          stwLeft:'Running: split (LAP). Stopped: clear (RESET)', tmrStart:'Starts or stops the countdown',
+          tmrReset:'Back to the starting time', tmrPlus1:'Adds 1 minute', tmrPlus5:'Adds 5 minutes',
+          guidePrev:'Previous guide page', guideNext:'Next guide page', lang:'Changes the app language' }
+  },
+  de:{
+    label:'HILFE', foot:'WISCHEN ↔ ODER ‹ › TIPPEN · ↕ ANDERE FENSTER',
+    pages:[
+      ['TASTEN', [['LICHT','Nachtansicht, dunkle Farben'],['Zz','Nachttischuhr: Bildschirm an, Wecker bereit'],['ZEIT','Sagt die Uhrzeit an und schreibt sie'],['TON','Signal zu jeder vollen Stunde'],['WECKER','Öffnet die Wecker; stoppt einen klingelnden']]],
+      ['UHR', [['TIPPEN','Ändert die Farbe'],['2× TIPPEN','Code-Regen; nochmal 2× zum Entfernen'],['WISCHEN','Zeit · Datum · Stoppuhr · Countdown'],['CA FR EN…','Sprache der App']]],
+      ['FENSTER', [['WISCHEN ↕','Kalender, Wecker, Wetter, Luft, Radio, News…'],['WISCHEN ↔','Im Kalender: Monat wechseln'],['ROTER TAG','Antippen zeigt den Feiertag'],['TIPPEN','Ändert die Farbe']]],
+      ['STOPPUHR', [['START / STOP','Startet und stoppt; letzte Zwischenzeit bleibt'],['LAP','Zwischenzeit jedes Staffelschwimmers'],['BAND','Zwischen- und Gesamtzeiten; seitlich wischen'],['RESET','Gestoppt: alles löschen']]],
+      ['COUNTDOWN', [['ZIFFERN','Antippen, um die Zeit einzustellen'],['+1 / +5','Fügt Minuten hinzu'],['START','Startet; bei 0 klingelt der Wecker'],['Zz','Nach 10 s ohne Berührung: Zz']]],
+      ['Zz-MODUS', [['TIPPEN','Ändert die Farbe: 5 Farben und 6 Paare'],['WISCHEN ↔','Zeigt das Wetter daneben'],['WISCHEN ↕','Mehr oder weniger Licht'],['2× TIPPEN','Code-Regen']]],
+      ['RADIO', [['SENDER','Antippen zum Hören; nochmal zum Stoppen'],['⏾','Schlummertimer: 15, 30, 45, 60 oder 90 Min.'],['PODCASTS','Auf Katalanisch']]],
+      ['HILFE', [['?','Hinweise auf dem Bildschirm; Tippen schließt'],['LANG DRÜCKEN','Auf eine Taste, um zu sehen, was sie tut']]]
+    ],
+    ov:{ watch1:'TIPPEN: FARBE · 2× TIPPEN: CODE-REGEN', watch2:'WISCHEN: ZEIT · DATUM · STOPPUHR · COUNTDOWN', lang:'SPRACHE',
+         night:'NACHT', zz:'NACHTTISCH', speak:'SAGT DIE ZEIT', chime:'STUNDENSIGNAL', alarm:'WECKER',
+         cal1:'WISCHEN ↕: ANDERE FENSTER', cal2:'WISCHEN ↔: MONATE', cal3:'TIPPEN: FARBE', close:'TIPPEN ZUM SCHLIESSEN · TASTE LANG DRÜCKEN ZEIGT IHRE FUNKTION' },
+    tip:{ nightToggle:'Nachtansicht: dunkle Farben für die Nacht', zzBtn:'Zz-Modus: Nachttischuhr, Bildschirm immer an, Wecker bereit',
+          speakBtn:'Sagt die Uhrzeit an und schreibt sie darunter', chimeToggle:'Stundensignal ein- oder ausschalten',
+          alarmBtn:'Öffnet die Wecker. Stoppt einen klingelnden', helpBtn:'Zeigt, was jeder Teil des Bildschirms tut',
+          sleepBtn:'Schlummertimer: je Tippen 15, 30, 45, 60, 90 Min. oder AUS', stwRight:'Startet oder stoppt die Stoppuhr',
+          stwLeft:'Läuft: Zwischenzeit (LAP). Gestoppt: löschen (RESET)', tmrStart:'Startet oder stoppt den Countdown',
+          tmrReset:'Zurück zur Startzeit', tmrPlus1:'Fügt 1 Minute hinzu', tmrPlus5:'Fügt 5 Minuten hinzu',
+          guidePrev:'Vorherige Seite', guideNext:'Nächste Seite', lang:'Ändert die Sprache der App' }
+  },
+  it:{
+    label:'GUIDA', foot:'SCORRI ↔ O TOCCA ‹ › · ↕ ALTRE FINESTRE',
+    pages:[
+      ['PULSANTI', [['LUCE','Vista notte, colori scuri'],['Zz','Orologio da comodino: schermo acceso e sveglie pronte'],['ORA',"Dice l'ora a voce e la scrive"],['SUONO','Avviso a ogni ora in punto'],['SVEGLIA','Apre le sveglie; ferma quella che suona']]],
+      ['OROLOGIO', [['TOCCO','Cambia il colore'],['2 TOCCHI','Pioggia di codice; altri 2 per toglierla'],['SCORRI','Ora · data · crono · conto alla rovescia'],['CA FR EN…',"Lingua dell'app"]]],
+      ['FINESTRE', [['SCORRI ↕','Calendario, sveglie, meteo, aria, radio, notizie…'],['SCORRI ↔','Nel calendario cambia mese'],['GIORNO ROSSO','Toccalo per vedere la festa'],['TOCCO','Cambia il colore']]],
+      ['CRONOMETRO', [['START / STOP','Avvia e ferma; tiene l\'ultimo parziale'],['LAP','Parziale di ogni staffettista'],['NASTRO','Parziali e totali; scorrilo di lato'],['RESET','A crono fermo, cancella tutto']]],
+      ['CONTO ALLA ROVESCIA', [['CIFRE','Toccale per impostare il tempo'],['+1 / +5','Aggiunge minuti'],['START','Avvia; a 0 suona la sveglia'],['Zz','Dopo 10 s senza toccare, passa a Zz']]],
+      ['MODALITÀ Zz', [['TOCCO','Cambia il colore: 5 colori e 6 coppie'],['SCORRI ↔','Mostra il meteo accanto'],['SCORRI ↕','Più o meno luce'],['2 TOCCHI','Pioggia di codice']]],
+      ['RADIO', [['STAZIONE','Toccala per ascoltare; di nuovo per fermare'],['⏾','Timer: 15, 30, 45, 60 o 90 min'],['PODCAST','In catalano']]],
+      ['AIUTO', [['?','Etichette sullo schermo; un tocco le toglie'],['PRESSIONE LUNGA','Su un pulsante, per sapere cosa fa']]]
+    ],
+    ov:{ watch1:'TOCCO: COLORE · 2 TOCCHI: PIOGGIA DI CODICE', watch2:'SCORRI: ORA · DATA · CRONO · CONTO ALLA ROVESCIA', lang:'LINGUA',
+         night:'VISTA NOTTE', zz:'COMODINO', speak:"DICE L'ORA", chime:'OGNI ORA', alarm:'SVEGLIE',
+         cal1:'SCORRI ↕: ALTRE FINESTRE', cal2:'SCORRI ↔: MESI', cal3:'TOCCO: COLORE', close:'TOCCA PER CHIUDERE · PRESSIONE LUNGA SU UN PULSANTE PER SAPERE COSA FA' },
+    tip:{ nightToggle:'Vista notte: colori scuri per la notte', zzBtn:'Modalità Zz: orologio da comodino, schermo sempre acceso e sveglie pronte',
+          speakBtn:"Dice l'ora a voce e la scrive sotto", chimeToggle:"Attiva o disattiva l'avviso di ogni ora in punto",
+          alarmBtn:'Apre le sveglie. Ferma quella che suona', helpBtn:'Mostra cosa fa ogni parte dello schermo',
+          sleepBtn:'Timer della radio: 15, 30, 45, 60, 90 min o OFF', stwRight:'Avvia o ferma il cronometro',
+          stwLeft:'In marcia: parziale (LAP). Fermo: cancella (RESET)', tmrStart:'Avvia o ferma il conto alla rovescia',
+          tmrReset:'Torna al tempo iniziale', tmrPlus1:'Aggiunge 1 minuto', tmrPlus5:'Aggiunge 5 minuti',
+          guidePrev:'Pagina precedente', guideNext:'Pagina successiva', lang:"Cambia la lingua dell'app" }
+  },
+  es:{
+    label:'GUÍA', foot:'DESLIZA ↔ O TOCA ‹ › · ↕ OTRAS VENTANAS',
+    pages:[
+      ['BOTONES', [['LUZ','Vista de noche, colores oscuros'],['Zz','Reloj de mesilla: pantalla encendida y alarmas listas'],['HORA','Dice la hora en voz alta y la escribe'],['SONIDO','Aviso a cada hora en punto'],['ALARMA','Abre las alarmas; para la que suena']]],
+      ['RELOJ', [['TOQUE','Cambia el color'],['2 TOQUES','Lluvia de código; 2 más la quitan'],['DESLIZA','Hora · fecha · crono · cuenta atrás'],['CA FR EN…','Idioma de la app']]],
+      ['VENTANAS', [['DESLIZA ↕','Calendario, alarmas, tiempo, aire, radio, noticias…'],['DESLIZA ↔','En el calendario, cambia de mes'],['DÍA ROJO','Tócalo para ver qué fiesta es'],['TOQUE','Cambia el color']]],
+      ['CRONÓMETRO', [['START / STOP','Pone en marcha y para; guarda el último parcial'],['LAP','Parcial de cada relevista'],['CINTA','Parciales y acumulados; deslízala de lado'],['RESET','Con el crono parado, lo borra']]],
+      ['CUENTA ATRÁS', [['CIFRAS','Tócalas para poner el tiempo'],['+1 / +5','Añade minutos'],['START','Arranca; a 0 suena la alarma'],['Zz','Sin tocar nada 10 s, pasa a Zz']]],
+      ['MODO Zz', [['TOQUE','Cambia el color: 5 colores y 6 parejas'],['DESLIZA ↔','Muestra el tiempo al lado'],['DESLIZA ↕','Más o menos luz'],['2 TOQUES','Lluvia de código']]],
+      ['RADIO', [['EMISORA','Tócala para escuchar; otro toque la para'],['⏾','Temporizador: 15, 30, 45, 60 o 90 min'],['PODCASTS','En catalán']]],
+      ['AYUDA', [['?','Etiquetas sobre la pantalla; un toque las quita'],['MANTÉN PULSADO','Cualquier botón, para saber qué hace']]]
+    ],
+    ov:{ watch1:'TOQUE: COLOR · 2 TOQUES: LLUVIA DE CÓDIGO', watch2:'DESLIZA: HORA · FECHA · CRONO · CUENTA ATRÁS', lang:'IDIOMA',
+         night:'VISTA NOCHE', zz:'MESILLA', speak:'DICE LA HORA', chime:'AVISO HORARIO', alarm:'ALARMAS',
+         cal1:'DESLIZA ↕: OTRAS VENTANAS', cal2:'DESLIZA ↔: MESES', cal3:'TOQUE: COLOR', close:'TOCA PARA CERRAR · MANTÉN PULSADO UN BOTÓN PARA SABER QUÉ HACE' },
+    tip:{ nightToggle:'Vista de noche: colores oscuros', zzBtn:'Modo Zz: reloj de mesilla, pantalla siempre encendida y alarmas listas',
+          speakBtn:'Dice la hora en voz alta y la escribe debajo', chimeToggle:'Activa o desactiva el aviso de cada hora en punto',
+          alarmBtn:'Abre las alarmas. Para la que está sonando', helpBtn:'Muestra qué hace cada parte de la pantalla',
+          sleepBtn:'Temporizador de la radio: 15, 30, 45, 60, 90 min u OFF', stwRight:'Pone en marcha o para el cronómetro',
+          stwLeft:'En marcha: parcial (LAP). Parado: borrar (RESET)', tmrStart:'Pone en marcha o para la cuenta atrás',
+          tmrReset:'Vuelve al tiempo inicial', tmrPlus1:'Añade 1 minuto', tmrPlus5:'Añade 5 minutos',
+          guidePrev:'Página anterior', guideNext:'Página siguiente', lang:'Cambia el idioma de la app' }
+  }
+};
+const G = () => GUIDE[currentLang] || GUIDE.ca;
+
+/* --- 1. Finestra Guia --- */
+let guidePage = 0;
+function renderGuide(){
+  const g = G(), n = g.pages.length;
+  guidePage = (guidePage + n) % n;
+  const [title, rows] = g.pages[guidePage];
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('guideLabel', g.label);
+  set('guidePage', `${guidePage + 1}/${n}`);
+  set('guideTitle', title);
+  set('guideFoot', g.foot);
+  const box = document.getElementById('guideRows');
+  if(box) box.innerHTML = rows.map(([k, v]) => `<div class="guide-row"><span class="gk">${esc(k)}</span><span class="gv">${esc(v)}</span></div>`).join('');
+  const lp = document.getElementById('guidePrev'), ln = document.getElementById('guideNext');
+  if(lp) lp.setAttribute('aria-label', g.tip.guidePrev);
+  if(ln) ln.setAttribute('aria-label', g.tip.guideNext);
+}
+function guideStep(d){ guidePage += d; renderGuide(); }
+
+/* --- 2. Botó «?»: etiquetes sobre la pantalla --- */
+function openHelp(){
+  const ov = document.getElementById('helpOv'); if(!ov || zzOn) return;
+  const o = G().ov;
+  ov.innerHTML = '';
+  ov.classList.add('on'); // ha de ser visible per poder mesurar les etiquetes
+  const add = (cls, r, html) => { const d = document.createElement('div'); d.className = cls; Object.assign(d.style, r); d.innerHTML = html; ov.appendChild(d); return d; };
+  const box = el => { if(!el) return null; const r = el.getBoundingClientRect(); if(!r.width) return null;
+    add('hov-box', { left:r.left - 3 + 'px', top:r.top - 3 + 'px', width:r.width + 6 + 'px', height:r.height + 6 + 'px' }, ''); return r; };
+  const chip = (txt, x, y, anchor) => {
+    const c = add('hov-chip', { left:'0px', top:'0px' }, txt.html || esc(txt));
+    // centrat a x i dins la pantalla
+    const w = c.offsetWidth, h = c.offsetHeight;
+    let L = x - w / 2; L = Math.max(6, Math.min(L, innerWidth - w - 6));
+    let T = anchor === 'above' ? y - h : y; T = Math.max(6, Math.min(T, innerHeight - h - 6));
+    c.style.left = L + 'px'; c.style.top = T + 'px';
+    return c;
+  };
+  const ws = document.getElementById('watchScreen');
+  const r = box(ws);
+  if(r){
+    const c1 = chip(o.watch1, r.left + r.width / 2, r.top + r.height * 0.5);
+    chip(o.watch2, r.left + r.width / 2, c1.getBoundingClientRect().bottom + 4);
+  }
+  const lr = document.getElementById('langRow');
+  const rl = box(lr);
+  if(rl) chip(o.lang, rl.left + rl.width / 2, rl.bottom + 6);
+  // botons rodons: es marquen tots i s'expliquen en una sola etiqueta a sota
+  const lines = [];
+  let rowBottom = 0, rowL = Infinity, rowR = 0;
+  [['nightToggle', o.night], ['zzBtn', o.zz], ['speakBtn', o.speak], ['chimeToggle', o.chime], ['alarmBtn', o.alarm]].forEach(([id, t]) => {
+    const el = document.getElementById(id); if(!el) return;
+    const rb = box(el.querySelector('.disc') || el); if(!rb) return;
+    const lbl = (el.querySelector('.lbl') || {}).textContent || '';
+    lines.push(`<b>${esc(lbl)}</b> ${esc(t)}`);
+    rowBottom = Math.max(rowBottom, el.getBoundingClientRect().bottom); rowL = Math.min(rowL, rb.left); rowR = Math.max(rowR, rb.right);
+  });
+  if(lines.length){ const c = chip({ html:lines.join('<br>') }, (rowL + rowR) / 2, rowBottom + 4); c.classList.add('list'); }
+  const cs = document.getElementById('calendarScreen');
+  const rc = box(cs);
+  if(rc){
+    const mid = rc.top + rc.height / 2;
+    const c1 = chip(o.cal1, rc.left + rc.width / 2, mid - 30);
+    let y = c1.getBoundingClientRect().bottom + 4;
+    if(currentView === 'cal'){ const c2 = chip(o.cal2, rc.left + rc.width / 2, y); y = c2.getBoundingClientRect().bottom + 4; }
+    chip(o.cal3, rc.left + rc.width / 2, y);
+  }
+  box(document.getElementById('helpBtn'));
+  const cl = add('hov-close', {}, esc(o.close));
+  // si la línia de tancar toca alguna etiqueta, va a dalt
+  const rcl = cl.getBoundingClientRect();
+  if([...ov.querySelectorAll('.hov-chip')].some(c => c.getBoundingClientRect().bottom > rcl.top - 4)){
+    cl.style.bottom = 'auto'; cl.style.top = 'max(10px, env(safe-area-inset-top))';
+  }
+  ov.classList.add('on');
+}
+function closeHelp(){ const ov = document.getElementById('helpOv'); if(ov){ ov.classList.remove('on'); ov.innerHTML = ''; } }
+
+/* --- 3. Mantenir premut un botó: què fa --- */
+const LP_SEL = '.rbtn, .help-btn, .sleep-btn, .wv-btn, .lang-btn, .guide-arrow';
+let lpTimer = null, lpFired = false, lpHide = null, lpStart = null;
+function tipText(el){
+  const t = G().tip;
+  if(el.classList.contains('lang-btn')) return t.lang;
+  return t[el.id] || el.getAttribute('aria-label') || el.title || el.textContent.trim();
+}
+function showTip(el){
+  const tip = document.getElementById('lpTip'); if(!tip) return;
+  tip.textContent = tipText(el);
+  tip.classList.add('on');
+  const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  let L = r.left + r.width / 2 - w / 2; L = Math.max(8, Math.min(L, innerWidth - w - 8));
+  let T = r.top - h - 10; if(T < 8) T = r.bottom + 10;
+  tip.style.left = L + 'px'; tip.style.top = T + 'px';
+  clearTimeout(lpHide);
+}
+function hideTipSoon(ms){ clearTimeout(lpHide); lpHide = setTimeout(() => { const t = document.getElementById('lpTip'); if(t) t.classList.remove('on'); }, ms); }
+function setupHelp(){
+  renderGuide();
+  const hb = document.getElementById('helpBtn');
+  if(hb) hb.addEventListener('click', e => { e.stopPropagation(); openHelp(); });
+  const ov = document.getElementById('helpOv');
+  if(ov) ov.addEventListener('click', e => { e.stopPropagation(); closeHelp(); });
+  window.addEventListener('resize', closeHelp);
+  const bind = (id, fn) => { const b = document.getElementById(id); if(b) b.addEventListener('click', e => { e.stopPropagation(); fn(); }); };
+  bind('guidePrev', () => guideStep(-1));
+  bind('guideNext', () => guideStep(1));
+  // mantenir premut
+  document.addEventListener('pointerdown', e => {
+    const el = e.target.closest && e.target.closest(LP_SEL);
+    if(!el) return;
+    lpFired = false; lpStart = { x:e.clientX, y:e.clientY };
+    clearTimeout(lpTimer);
+    lpTimer = setTimeout(() => { lpFired = true; showTip(el); }, 550);
+  }, true);
+  document.addEventListener('pointermove', e => {
+    if(!lpStart) return;
+    if(Math.abs(e.clientX - lpStart.x) > 10 || Math.abs(e.clientY - lpStart.y) > 10){ clearTimeout(lpTimer); lpStart = null; }
+  }, true);
+  const up = () => { clearTimeout(lpTimer); lpStart = null; if(lpFired) hideTipSoon(1800); };
+  document.addEventListener('pointerup', up, true);
+  document.addEventListener('pointercancel', up, true);
+  // el clic que arriba després de mantenir premut no ha de fer res
+  document.addEventListener('click', e => {
+    if(!lpFired) return;
+    lpFired = false;
+    e.preventDefault(); e.stopImmediatePropagation();
+  }, true);
+  document.addEventListener('contextmenu', e => { if(e.target.closest && e.target.closest(LP_SEL)) e.preventDefault(); });
+}
+
 /* ===================== INICI ===================== */
 initLanguage();
 buildLangButtons();
@@ -4305,6 +4546,7 @@ applyStaticTexts();
 initLocationData();
 
 setupZzExtras();
+setupHelp();
 setupMatrix();
 setupSleep();
 
