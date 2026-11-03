@@ -1100,6 +1100,23 @@
   .lp-tip{ position:fixed; z-index:9500; max-width:min(280px, 84vw); background:#ffd84d; color:#1a1405; font:700 12px/1.3 var(--mono, monospace);
     padding:6px 9px; border-radius:6px; box-shadow:0 3px 12px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .2s ease; }
   .lp-tip.on{ opacity:1; }
+
+  /* ===== Zz amb finestra lluminosa (halo) ===== */
+  html.zz.zz-halo .watch{ opacity:1; }
+  html.zz.zz-halo #watchScreen{ --lcd-ink:var(--ink-b); --lcd-ghost:transparent; }
+  html.zz.zz-halo #zzWxScreen{ --lcd-ink:var(--ink-a); --lcd-ghost:transparent; }
+  html.zz.zz-halo #watchScreen .seven-seg-time .seg.on{ fill:var(--ink-a); }
+  html.zz.zz-halo #zzWxTemp .seg.on{ fill:var(--ink-b); }
+  html.zz.zz-halo #watchScreen .seg.off, html.zz.zz-halo #zzWxTemp .seg.off{ fill:transparent; }
+  html.zz.zz-halo .zzwx-ico{ color:var(--ink-b); }
+  html.zz.zz-halo .zzwx-deg rect{ stroke:var(--ink-b); }
+  html.zz.zz-halo #watchScreen, html.zz.zz-halo #zzWxScreen{ background:var(--halo-bg); box-shadow:inset 0 0 0 1px var(--halo-edge), 0 0 22px var(--halo-out); }
+  html.zz.zz-halo #watchScreen .seven-seg-time{ filter:drop-shadow(0 0 3px var(--ink-a)) brightness(1.15); }
+  html.zz.zz-halo #zzWxTemp, html.zz.zz-halo .zzwx-ico{ filter:drop-shadow(0 0 3px var(--ink-b)) brightness(1.15); }
+  html.zz.zz-halo .lcd-date-row, html.zz.zz-halo .zz-info, html.zz.zz-halo .zzwx-row, html.zz.zz-halo #watchScreen .lcd-top{ text-shadow:0 0 6px currentColor; }
+  html.zz.zz-halo #zzBtn .disc svg{ color:var(--ink-a); }
+  html.zz.zz-halo #zzBtn .lbl{ color:var(--ink-b); }
+  :root.zz.zz-halo[data-theme]{ --accent:var(--ink-a); --accent-light:var(--ink-a); }
 </style>
 
 </head>
@@ -3041,12 +3058,31 @@ function cycleDayTheme(e){
 // Tons del mode Zz: taronja (el de sempre), blau, verd, groc i cian
 const ZZ_TONES = ['', 'blau', 'verd', 'groc', 'cian',
   // combinacions: rellotge d'un color + finestra del temps d'un altre
-  'taronja+groc', 'blau+cian', 'verd+groc', 'cian+taronja', 'blau+groc', 'verd+cian'];
+  'taronja+groc', 'blau+cian', 'verd+groc', 'cian+taronja', 'blau+groc', 'verd+cian',
+  // amb finestra lluminosa (halo): colors creuats entre el rellotge i el temps
+  'halo1', 'halo2', 'halo3', 'halo4', 'halo5', 'halo6'];
+// a = hora del rellotge i textos del temps · b = data/textos del rellotge, temperatura i icona · h = llum de la finestra
+const ZZ_HALOS = {
+  halo1:{ a:'#c2441f', b:'#d0a524', h:'#cfe3ff', al:'22' }, // taronja / groc · blanc lunar
+  halo2:{ a:'#4a86e8', b:'#2fb3bb', h:'#3c9cd1', al:'2e' }, // blau / cian · barreja
+  halo3:{ a:'#c2441f', b:'#4a86e8', h:'#46e539', al:'2e' }, // taronja / blau · complementari
+  halo4:{ a:'#36b357', b:'#d0a524', h:'#83ac3d', al:'2e' }, // verd / groc · barreja
+  halo5:{ a:'#d0302f', b:'#2fb3bb', h:'#cfe3ff', al:'22' }, // vermell / cian · blanc lunar
+  halo6:{ a:'#d0a524', b:'#4a86e8', h:'#8d9586', al:'2e' }  // groc / blau · barreja
+};
 const ZZ_TONE_KEY = 'kasioZzTone';
 let zzTone = 0;
 try{ zzTone = Math.max(0, ZZ_TONES.indexOf(localStorage.getItem(ZZ_TONE_KEY) || '')); }catch(err){}
 function applyZzTone(){
-  const [clock, wx] = ZZ_TONES[zzTone].split('+');
+  const root = document.documentElement, hv = ZZ_HALOS[ZZ_TONES[zzTone]];
+  root.classList.toggle('zz-halo', !!hv);
+  ['--ink-a','--ink-b','--halo-bg','--halo-edge','--halo-out'].forEach(k => root.style.removeProperty(k));
+  if(hv){
+    root.style.setProperty('--ink-a', hv.a); root.style.setProperty('--ink-b', hv.b);
+    root.style.setProperty('--halo-bg', `radial-gradient(ellipse at 50% 45%, ${hv.h}${hv.al}, ${hv.h}18 75%), #050505`);
+    root.style.setProperty('--halo-edge', hv.h + '40'); root.style.setProperty('--halo-out', hv.h + '26');
+  }
+  const [clock, wx] = hv ? ['taronja'] : ZZ_TONES[zzTone].split('+');
   const t = clock === 'taronja' ? '' : clock;
   if(t) document.documentElement.dataset.zztone = t; else delete document.documentElement.dataset.zztone;
   const p = document.getElementById('zzWx');
