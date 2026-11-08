@@ -243,8 +243,9 @@
   .live-dot{
     width:6px; height:6px; border-radius:50%;
     background:var(--accent);
-    animation:blink 2s steps(1) infinite;
   }
+  /* Parpelleig a cop de rellotge (un canvi per segon) en lloc d'una animació contínua: estalvia bateria */
+  .blink-off{ opacity:.15; }
   @keyframes blink{ 50%{ opacity:.15; } }
 
   .lang-row{
@@ -282,7 +283,7 @@
     color:var(--accent);
     display:none;
   }
-  .rain-icon.visible{ display:block; animation:blink 2s steps(1) infinite; }
+  .rain-icon.visible{ display:block; }
 
   .signal-bars{ display:flex; align-items:flex-end; gap:2px; height:10px; }
   .signal-bars span{ display:block; width:3px; background:var(--lcd-ink); opacity:.75; }
@@ -303,7 +304,7 @@
   .seg.on{ fill:var(--lcd-ink); }
   .seg.off{ fill:var(--lcd-ghost); }
   .colon{ width:calc(var(--digit-w) * 0.42); height:auto; display:block; }
-  .colon.blink{ animation:blink 2s steps(1) infinite; }
+
 
   .lcd-date-row{
     text-align:center;
@@ -1027,6 +1028,7 @@
     text-shadow:0 0 6px rgba(60,255,110,.8); background:rgba(0,0,0,.75); padding:2px 6px; z-index:1; white-space:pre; }
   .matrix-prompt .cur{ display:inline-block; width:.6em; height:1em; vertical-align:-2px; background:#4dff7a; animation:mxBlink 1s steps(1) infinite; }
   @keyframes mxBlink{ 50%{ opacity:0; } }
+  .matrix:not(.on) .matrix-prompt .cur{ animation:none; } /* amagada, no ha de fer feina */
 
   /* Placa «Ara sona» amb el temporitzador de la ràdio */
   .now-plate{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
@@ -1061,8 +1063,10 @@
     html.zz.zz-wx:not(.zz-auto)[data-theme]{ --panel-width:min(92vw, 520px, calc(40vh * 1.6)); --digit-w:calc((var(--panel-width) - 90px) / 6.9); }
   }
   /* Intensitat: puja o baixa la llum de les xifres i els textos, no la dels segments apagats */
-  html.zz .lcd-screen > *, html.zz #zzBtn{ filter:brightness(var(--zzb, 1)); }
-  html.zz .seg.off{ opacity:calc(1 / var(--zzb, 1)); }
+  html.zz.zzb-adj .lcd-screen > *, html.zz.zzb-adj #zzBtn{ filter:brightness(var(--zzb, 1)); }
+  html.zz.zzb-adj .seg.off{ opacity:calc(1 / var(--zzb, 1)); }
+  /* En Zz els segments canvien de cop, com un LCD real: cap animació cada segon */
+  html.zz .seg{ transition:none; }
   html.zz .zzb-meter.show{ display:flex; }
   .zzb-meter{ position:fixed; top:max(14px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%); gap:4px; align-items:center; z-index:60; pointer-events:none; }
   .zzb-meter span{ color:var(--lcd-ink); font:800 13px/1 monospace; margin-right:6px; }
@@ -1449,6 +1453,9 @@ function renderTime(){
   checkHourlyChime(now);
   checkAlarms(now);
   if(zzOn) updateZzInfo(now);
+  // dos punts, punt vermell i paraigua: 1 s encesos, 1 s apagats
+  const dim = now.getSeconds() % 2 === 1;
+  document.querySelectorAll('.colon.blink, .live-dot, .rain-icon').forEach(el => el.classList.toggle('blink-off', dim));
   checkTimer(now);
   checkAutoZz();
   renderWatchView(now);
@@ -2478,6 +2485,46 @@ function fetchAll(lat, lon, isFallback){
   fetchWeather(lat, lon);
   fetchAir(lat, lon);
 }
+
+/* Refresc de dades espaiat per estalviar bateria:
+   - temps: cada 15 min (cada 30 min en Zz)
+   - qualitat de l'aire: cada hora
+   - ubicació (GPS): cada hora (cada 3 h en Zz), amb precisió de barri i
+     només es tornen a demanar el nom i l'altitud si t'has mogut més d'1 km
+   - res mentre l'app no es veu; en tornar-hi, es posa al dia */
+let lastWxAt = Date.now(), lastAirAt = Date.now(), lastGeoAt = Date.now();
+function kmBetween(a, b){
+  const R = 6371, r = Math.PI / 180;
+  const dLa = (b.lat - a.lat) * r, dLo = (b.lon - a.lon) * r;
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function refreshWeatherOnly(){
+  if(!lastCoords) return;
+  const now = Date.now();
+  lastWxAt = now; fetchWeather(lastCoords.lat, lastCoords.lon);
+  if(now - lastAirAt >= 60 * 60 * 1000){ lastAirAt = now; fetchAir(lastCoords.lat, lastCoords.lon); }
+}
+function relocate(){
+  lastGeoAt = Date.now();
+  if(!('geolocation' in navigator) || !lastCoords || lastCoords.isFallback){ initLocationData(); lastWxAt = lastAirAt = Date.now(); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const p = { lat:pos.coords.latitude, lon:pos.coords.longitude };
+      if(kmBetween(lastCoords, p) > 1){ lastWxAt = lastAirAt = Date.now(); fetchAll(p.lat, p.lon, false); }
+      else refreshWeatherOnly();
+    },
+    () => refreshWeatherOnly(),
+    { timeout:15000, maximumAge:30 * 60 * 1000, enableHighAccuracy:false }
+  );
+}
+function refreshData(){
+  if(document.hidden) return;
+  const now = Date.now();
+  if(now - lastGeoAt >= (zzOn ? 3 : 1) * 60 * 60 * 1000) relocate();
+  else if(now - lastWxAt >= (zzOn ? 30 : 15) * 60 * 1000) refreshWeatherOnly();
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden) refreshData(); });
 
 function initLocationData(){
   if('geolocation' in navigator){
@@ -3554,8 +3601,8 @@ function updateZzInfo(now){
   }
   if(el.textContent !== txt) el.textContent = txt;
   el.classList.toggle('tap', tap);
-  // Petit desplaçament cada minut, perquè la imatge no quedi fixa tota la nit
-  if(now.getSeconds() === 0){
+  // Petit desplaçament cada 5 minuts, perquè la imatge no quedi fixa tota la nit
+  if(now.getSeconds() === 0 && now.getMinutes() % 5 === 0){
     const tr = `translate(${Math.round(Math.random() * 16 - 8)}px, ${Math.round(Math.random() * 16 - 8)}px)`;
     document.querySelectorAll('.watch').forEach(w => { w.style.transform = tr; });
   }
@@ -4163,6 +4210,7 @@ try{
 }catch(err){}
 function applyZzBright(show){
   document.documentElement.style.setProperty('--zzb', ZZB_LEVELS[zzBright]);
+  document.documentElement.classList.toggle('zzb-adj', ZZB_LEVELS[zzBright] !== 1); // sense filtre si la llum és la normal
   const m = document.getElementById('zzbMeter');
   if(!m) return;
   m.querySelectorAll('i').forEach((x, i) => x.classList.toggle('on', i <= zzBright));
@@ -4587,9 +4635,19 @@ setupMatrix();
 setupSleep();
 
 setInterval(renderTime, 1000);
-setInterval(() => { renderDate(); buildCalendar(); }, 60 * 1000);
-setInterval(initLocationData, 10 * 60 * 1000);
-setInterval(() => { if(currentView === 'podcasts') loadPrograms(false); if(currentView === 'noticies') loadNews(false); }, 60 * 1000);
+let calDay = new Date().toDateString();
+setInterval(() => {
+  renderDate();
+  // el calendari només es torna a dibuixar quan canvia el dia
+  const d = new Date().toDateString();
+  if(d !== calDay){ calDay = d; buildCalendar(); }
+}, 60 * 1000);
+setInterval(refreshData, 5 * 60 * 1000);
+setInterval(() => {
+  if(zzOn || document.hidden) return; // en Zz aquestes finestres no es veuen
+  if(currentView === 'podcasts') loadPrograms(false);
+  if(currentView === 'noticies') loadNews(false);
+}, 60 * 1000);
 </script>
 
 </body>
