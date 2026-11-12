@@ -901,10 +901,12 @@
   html.zz .zzwx[data-wxtone="verd"]{ --lcd-ink:#2f9f4c; --lcd-ghost:rgba(47,159,76,0.04); --accent:#2f9f4c; --accent-light:#22743a; --label:#15502a; --btn-text:#134624; }
   html.zz .zzwx[data-wxtone="groc"]{ --lcd-ink:#b9921d; --lcd-ghost:rgba(185,146,29,0.04); --accent:#b9921d; --accent-light:#876a15; --label:#5e4a0e; --btn-text:#52400c; }
   html.zz .zzwx[data-wxtone="cian"]{ --lcd-ink:#2a9ea6; --lcd-ghost:rgba(42,158,166,0.04); --accent:#2a9ea6; --accent-light:#1f7379; --label:#114f54; --btn-text:#0f4549; }
+  html.zz .zzwx[data-wxtone="lume"]{ --lcd-ink:#d3d8ab; --lcd-ghost:rgba(211,216,171,0.04); --accent:#d3d8ab; --accent-light:#9a9e7c; --label:#7d8165; --btn-text:#6c7058; }
   :root.zz[data-theme][data-zztone="blau"]{ --lcd-ink:#3a74d0; --lcd-ghost:rgba(58,116,208,0.04); --accent:#3a74d0; --accent-light:#2a5498; --label:#1c3a6b; --btn-text:#18325c; }
   :root.zz[data-theme][data-zztone="verd"]{ --lcd-ink:#2f9f4c; --lcd-ghost:rgba(47,159,76,0.04); --accent:#2f9f4c; --accent-light:#22743a; --label:#15502a; --btn-text:#134624; }
   :root.zz[data-theme][data-zztone="groc"]{ --lcd-ink:#b9921d; --lcd-ghost:rgba(185,146,29,0.04); --accent:#b9921d; --accent-light:#876a15; --label:#5e4a0e; --btn-text:#52400c; }
   :root.zz[data-theme][data-zztone="cian"]{ --lcd-ink:#2a9ea6; --lcd-ghost:rgba(42,158,166,0.04); --accent:#2a9ea6; --accent-light:#1f7379; --label:#114f54; --btn-text:#0f4549; }
+  :root.zz[data-theme][data-zztone="lume"]{ --lcd-ink:#d3d8ab; --lcd-ghost:rgba(211,216,171,0.04); --accent:#d3d8ab; --accent-light:#9a9e7c; --label:#7d8165; --btn-text:#6c7058; }
   html.zz .calendar-wrap,
   html.zz .location-label,
   html.zz .lang-row,
@@ -1121,6 +1123,20 @@
   html.zz.zz-halo #zzBtn .disc svg{ color:var(--ink-a); }
   html.zz.zz-halo #zzBtn .lbl{ color:var(--ink-b); }
   :root.zz.zz-halo[data-theme]{ --accent:var(--ink-a); --accent-light:var(--ink-a); }
+
+  /* ============ MODE NOCTURN «LUME»: verd pàl·lid fosforescent, com la lluminescència d'un rellotge ============
+     De nit, un toc a la pantalla alterna entre el vermell i aquest to. */
+  :root[data-theme="night"][data-night="lume"]{
+    --lcd-bg-1:#0e0f0b; --lcd-bg-2:#070805;
+    --lcd-ink:#e6ebbd; --lcd-ghost:rgba(230,235,189,0.06); --lcd-line:rgba(230,235,189,0.16);
+    --accent:#eef2c8; --accent-light:#b4b890;
+    --label:#a3a782; --btn-text:#8a8e6e;
+  }
+  :root[data-theme="night"][data-night="lume"] .seven-seg-time{ filter:drop-shadow(0 0 4px rgba(230,235,189,.3)); }
+  :root[data-theme="night"][data-night="lume"] .cal-cell.today{ background:#e6ebbd; color:#14150f; box-shadow:0 0 14px rgba(230,235,189,.45); }
+  :root[data-theme="night"][data-night="lume"] .rbtn.active .disc{ background:#e6ebbd; box-shadow:0 0 0 2px #e6ebbd, 0 0 14px rgba(230,235,189,.45); }
+  :root[data-theme="night"][data-night="lume"] .rbtn.active .disc svg{ color:#14150f; opacity:1; }
+  :root[data-theme="night"][data-night="lume"] .lang-btn.on{ background:#e6ebbd; color:#14150f; box-shadow:0 0 10px rgba(230,235,189,.4); }
 </style>
 
 </head>
@@ -3079,6 +3095,9 @@ const DAY_THEMES = ['pressec', 'sorra', 'negatiu', 'amber', 'mono'];
 let zzOn = false; // mode Zz (vegeu més avall)
 const THEME_STORAGE_KEY = 'kasioThemeV2';
 const NIGHT_STORAGE_KEY = 'casioClockNight';
+const NIGHT_TONE_KEY = 'kasioNightTone';
+let nightTone = '';
+try{ nightTone = localStorage.getItem(NIGHT_TONE_KEY) === 'lume' ? 'lume' : ''; }catch(err){}
 let dayThemeIndex = 0;
 let isNight = false;
 
@@ -3086,6 +3105,9 @@ function applyTheme(){
   const theme = (isNight || zzOn) ? 'night' : DAY_THEMES[dayThemeIndex];
   document.documentElement.setAttribute('data-theme', theme);
   document.documentElement.classList.toggle('zz', zzOn);
+  // to de la nit: vermell (el de sempre) o «lume» (verd pàl·lid); no afecta el mode Zz
+  if(isNight && !zzOn && nightTone) document.documentElement.dataset.night = nightTone;
+  else delete document.documentElement.dataset.night;
   const btn = document.getElementById('nightToggle');
   if(btn){ btn.classList.toggle('active', isNight); btn.setAttribute('aria-pressed', String(isNight)); }
 }
@@ -3102,8 +3124,8 @@ function cycleDayTheme(e){
   }
   nextDayTheme(onWatch);
 }
-// Tons del mode Zz: taronja (el de sempre), blau, verd, groc i cian
-const ZZ_TONES = ['', 'blau', 'verd', 'groc', 'cian',
+// Tons del mode Zz: taronja (el de sempre), blau, verd, groc, cian i lume (verd pàl·lid)
+const ZZ_TONES = ['', 'blau', 'verd', 'groc', 'cian', 'lume',
   // combinacions: rellotge d'un color + finestra del temps d'un altre
   'taronja+groc', 'blau+cian', 'verd+groc', 'cian+taronja', 'blau+groc', 'verd+cian',
   // amb finestra lluminosa (halo): colors creuats entre el rellotge i el temps
@@ -3144,7 +3166,13 @@ applyZzTone();
 function nextDayTheme(onWatch){
   // Al cronòmetre i al compte enrere, un toc fora dels botons no ha de canviar el color
   if(onWatch && (effectiveWatchView() === 'stw' || effectiveWatchView() === 'tmr')) return;
-  if(isNight || zzOn) return; // de nit, tocar la pantalla no ha d'encendre colors
+  if(zzOn) return;
+  if(isNight){ // de nit, un toc alterna entre el vermell i el verd «lume»
+    nightTone = nightTone ? '' : 'lume';
+    try{ localStorage.setItem(NIGHT_TONE_KEY, nightTone); }catch(err){}
+    applyTheme();
+    return;
+  }
   dayThemeIndex = (dayThemeIndex + 1) % DAY_THEMES.length;
   try{ localStorage.setItem(THEME_STORAGE_KEY, String(dayThemeIndex)); }catch(err){}
   applyTheme();
@@ -4394,7 +4422,7 @@ const GUIDE = {
       ['FINESTRES', [['LLISCA ↕','Calendari, alarmes, temps, aire, ràdio, notícies…'],['LLISCA ↔','Al calendari, canvia de mes'],['DIA VERMELL','Toca-hi per veure quina festa és'],['TOC','Canvia el color']]],
       ['CRONÒMETRE', [['START / STOP','Engega i atura; en aturar desa el darrer parcial'],['LAP','Parcial de cada rellevista'],['CINTA','Parcials i acumulats; llisca-la de costat'],['RESET','Amb el crono aturat, ho esborra']]],
       ['COMPTE ENRERE', [['XIFRES','Toca-les per posar el temps'],['+1 / +5','Afegeix minuts'],['START','Engega; al 0 sona l\'alarma'],['Zz','Si no toques res en 10 s, passa a Zz']]],
-      ['MODE Zz', [['TOC','Canvia el color: 5 colors i 6 parelles'],['LLISCA ↔','Mostra el temps al costat'],['LLISCA ↕','Més o menys llum'],['2 TOCS','Pluja de codi']]],
+      ['MODE Zz', [['TOC','Canvia el color: 6 colors i 12 combinacions'],['LLISCA ↔','Mostra el temps al costat'],['LLISCA ↕','Més o menys llum'],['2 TOCS','Pluja de codi']]],
       ['RÀDIO', [['EMISSORA',"Toca-la per escoltar; un altre toc l'atura"],['⏾','Temporitzador: 15, 30, 45, 60 o 90 min'],['PODCASTS','La Competència i Via lliure']]],
       ['AJUDA', [['?','Etiquetes sobre la pantalla; un toc les treu'],['MANTÉN PREMUT','Qualsevol botó, per saber què fa']]]
     ],
@@ -4417,7 +4445,7 @@ const GUIDE = {
       ['FENÊTRES', [['GLISSER ↕','Calendrier, réveils, météo, air, radio, infos…'],['GLISSER ↔','Dans le calendrier, change de mois'],['JOUR ROUGE','Touchez-le pour voir la fête'],['TOUCHER','Change la couleur']]],
       ['CHRONO', [['START / STOP','Démarre et arrête ; garde le dernier temps'],['LAP','Temps de chaque relayeur'],['BANDE','Temps et cumuls ; glissez-la de côté'],['RESET','Chrono arrêté : tout effacer']]],
       ['COMPTE À REBOURS', [['CHIFFRES','Touchez-les pour régler la durée'],['+1 / +5','Ajoute des minutes'],['START','Démarre ; à 0 le réveil sonne'],['Zz','Sans toucher pendant 10 s, passe en Zz']]],
-      ['MODE Zz', [['TOUCHER','Change la couleur : 5 couleurs et 6 paires'],['GLISSER ↔','Affiche la météo à côté'],['GLISSER ↕','Plus ou moins de lumière'],['2 TOUCHERS','Pluie de code']]],
+      ['MODE Zz', [['TOUCHER','Change la couleur : 6 couleurs et 12 combinaisons'],['GLISSER ↔','Affiche la météo à côté'],['GLISSER ↕','Plus ou moins de lumière'],['2 TOUCHERS','Pluie de code']]],
       ['RADIO', [['STATION',"Touchez-la pour écouter ; encore une fois pour l'arrêter"],['⏾','Minuterie : 15, 30, 45, 60 ou 90 min'],['PODCASTS','En catalan']]],
       ['AIDE', [['?','Étiquettes sur l\'écran ; un toucher les retire'],['APPUI LONG','Sur un bouton, pour savoir ce qu\'il fait']]]
     ],
@@ -4440,7 +4468,7 @@ const GUIDE = {
       ['WINDOWS', [['SWIPE ↕','Calendar, alarms, weather, air, radio, news…'],['SWIPE ↔','In the calendar, changes month'],['RED DAY','Tap it to see the holiday'],['TAP','Changes the colour']]],
       ['STOPWATCH', [['START / STOP','Starts and stops; keeps the last split'],['LAP','Split for each relay swimmer'],['TAPE','Splits and totals; swipe it sideways'],['RESET','When stopped, clears everything']]],
       ['COUNTDOWN', [['DIGITS','Tap them to set the time'],['+1 / +5','Adds minutes'],['START','Starts; the alarm rings at 0'],['Zz','After 10 s untouched, goes to Zz']]],
-      ['Zz MODE', [['TAP','Changes the colour: 5 colours and 6 pairs'],['SWIPE ↔','Shows the weather alongside'],['SWIPE ↕','More or less light'],['DOUBLE TAP','Code rain']]],
+      ['Zz MODE', [['TAP','Changes the colour: 6 colours and 12 combinations'],['SWIPE ↔','Shows the weather alongside'],['SWIPE ↕','More or less light'],['DOUBLE TAP','Code rain']]],
       ['RADIO', [['STATION','Tap to listen; tap again to stop'],['⏾','Sleep timer: 15, 30, 45, 60 or 90 min'],['PODCASTS','In Catalan']]],
       ['HELP', [['?','Labels over the screen; a tap removes them'],['LONG PRESS','Any button, to see what it does']]]
     ],
@@ -4463,7 +4491,7 @@ const GUIDE = {
       ['FENSTER', [['WISCHEN ↕','Kalender, Wecker, Wetter, Luft, Radio, News…'],['WISCHEN ↔','Im Kalender: Monat wechseln'],['ROTER TAG','Antippen zeigt den Feiertag'],['TIPPEN','Ändert die Farbe']]],
       ['STOPPUHR', [['START / STOP','Startet und stoppt; letzte Zwischenzeit bleibt'],['LAP','Zwischenzeit jedes Staffelschwimmers'],['BAND','Zwischen- und Gesamtzeiten; seitlich wischen'],['RESET','Gestoppt: alles löschen']]],
       ['COUNTDOWN', [['ZIFFERN','Antippen, um die Zeit einzustellen'],['+1 / +5','Fügt Minuten hinzu'],['START','Startet; bei 0 klingelt der Wecker'],['Zz','Nach 10 s ohne Berührung: Zz']]],
-      ['Zz-MODUS', [['TIPPEN','Ändert die Farbe: 5 Farben und 6 Paare'],['WISCHEN ↔','Zeigt das Wetter daneben'],['WISCHEN ↕','Mehr oder weniger Licht'],['2× TIPPEN','Code-Regen']]],
+      ['Zz-MODUS', [['TIPPEN','Ändert die Farbe: 6 Farben und 12 Kombinationen'],['WISCHEN ↔','Zeigt das Wetter daneben'],['WISCHEN ↕','Mehr oder weniger Licht'],['2× TIPPEN','Code-Regen']]],
       ['RADIO', [['SENDER','Antippen zum Hören; nochmal zum Stoppen'],['⏾','Schlummertimer: 15, 30, 45, 60 oder 90 Min.'],['PODCASTS','Auf Katalanisch']]],
       ['HILFE', [['?','Hinweise auf dem Bildschirm; Tippen schließt'],['LANG DRÜCKEN','Auf eine Taste, um zu sehen, was sie tut']]]
     ],
@@ -4486,7 +4514,7 @@ const GUIDE = {
       ['FINESTRE', [['SCORRI ↕','Calendario, sveglie, meteo, aria, radio, notizie…'],['SCORRI ↔','Nel calendario cambia mese'],['GIORNO ROSSO','Toccalo per vedere la festa'],['TOCCO','Cambia il colore']]],
       ['CRONOMETRO', [['START / STOP','Avvia e ferma; tiene l\'ultimo parziale'],['LAP','Parziale di ogni staffettista'],['NASTRO','Parziali e totali; scorrilo di lato'],['RESET','A crono fermo, cancella tutto']]],
       ['CONTO ALLA ROVESCIA', [['CIFRE','Toccale per impostare il tempo'],['+1 / +5','Aggiunge minuti'],['START','Avvia; a 0 suona la sveglia'],['Zz','Dopo 10 s senza toccare, passa a Zz']]],
-      ['MODALITÀ Zz', [['TOCCO','Cambia il colore: 5 colori e 6 coppie'],['SCORRI ↔','Mostra il meteo accanto'],['SCORRI ↕','Più o meno luce'],['2 TOCCHI','Pioggia di codice']]],
+      ['MODALITÀ Zz', [['TOCCO','Cambia il colore: 6 colori e 12 combinazioni'],['SCORRI ↔','Mostra il meteo accanto'],['SCORRI ↕','Più o meno luce'],['2 TOCCHI','Pioggia di codice']]],
       ['RADIO', [['STAZIONE','Toccala per ascoltare; di nuovo per fermare'],['⏾','Timer: 15, 30, 45, 60 o 90 min'],['PODCAST','In catalano']]],
       ['AIUTO', [['?','Etichette sullo schermo; un tocco le toglie'],['PRESSIONE LUNGA','Su un pulsante, per sapere cosa fa']]]
     ],
@@ -4509,7 +4537,7 @@ const GUIDE = {
       ['VENTANAS', [['DESLIZA ↕','Calendario, alarmas, tiempo, aire, radio, noticias…'],['DESLIZA ↔','En el calendario, cambia de mes'],['DÍA ROJO','Tócalo para ver qué fiesta es'],['TOQUE','Cambia el color']]],
       ['CRONÓMETRO', [['START / STOP','Pone en marcha y para; guarda el último parcial'],['LAP','Parcial de cada relevista'],['CINTA','Parciales y acumulados; deslízala de lado'],['RESET','Con el crono parado, lo borra']]],
       ['CUENTA ATRÁS', [['CIFRAS','Tócalas para poner el tiempo'],['+1 / +5','Añade minutos'],['START','Arranca; a 0 suena la alarma'],['Zz','Sin tocar nada 10 s, pasa a Zz']]],
-      ['MODO Zz', [['TOQUE','Cambia el color: 5 colores y 6 parejas'],['DESLIZA ↔','Muestra el tiempo al lado'],['DESLIZA ↕','Más o menos luz'],['2 TOQUES','Lluvia de código']]],
+      ['MODO Zz', [['TOQUE','Cambia el color: 6 colores y 12 combinaciones'],['DESLIZA ↔','Muestra el tiempo al lado'],['DESLIZA ↕','Más o menos luz'],['2 TOQUES','Lluvia de código']]],
       ['RADIO', [['EMISORA','Tócala para escuchar; otro toque la para'],['⏾','Temporizador: 15, 30, 45, 60 o 90 min'],['PODCASTS','En catalán']]],
       ['AYUDA', [['?','Etiquetas sobre la pantalla; un toque las quita'],['MANTÉN PULSADO','Cualquier botón, para saber qué hace']]]
     ],
