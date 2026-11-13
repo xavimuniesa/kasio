@@ -1137,6 +1137,14 @@
   :root[data-theme="night"][data-night="lume"] .rbtn.active .disc{ background:#e6ebbd; box-shadow:0 0 0 2px #e6ebbd, 0 0 14px rgba(230,235,189,.45); }
   :root[data-theme="night"][data-night="lume"] .rbtn.active .disc svg{ color:#14150f; opacity:1; }
   :root[data-theme="night"][data-night="lume"] .lang-btn.on{ background:#e6ebbd; color:#14150f; box-shadow:0 0 10px rgba(230,235,189,.4); }
+
+  /* ===== Tercer color de les combinacions del Zz ===== */
+  html.zz.zz-third #dayName, html.zz.zz-third .zzwx-ico, html.zz.zz-third #zzBtn .lbl{ color:var(--ink-c) !important; }
+  html.zz.zz-halo.zz-third .zzwx-ico{ filter:drop-shadow(0 0 3px var(--ink-c)) brightness(1.15); }
+
+  /* ===== Botó «pantalla encesa» (sense passar a Zz) ===== */
+  .keep-btn svg{ width:13px; height:13px; display:block; }
+  .keep-btn.on{ background:var(--lcd-ink); color:var(--lcd-bg-1); opacity:1; }
 </style>
 
 </head>
@@ -1152,6 +1160,7 @@
             <span class="day-badge"><span class="live-dot"></span><span id="dayName">---</span></span>
             <div class="lang-row" id="langRow" role="group"></div>
             <span class="top-right">
+              <button type="button" class="help-btn keep-btn" id="keepBtn" aria-pressed="false" aria-label="Pantalla encesa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
               <button type="button" class="help-btn" id="helpBtn" aria-label="?">?</button>
               <span class="alm-ind" id="almInd">ALM</span>
               <svg class="rain-icon" id="rainIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -3132,12 +3141,17 @@ const ZZ_TONES = ['', 'blau', 'verd', 'groc', 'cian', 'lume',
   'halo1', 'halo2', 'halo3', 'halo4', 'halo5', 'halo6'];
 // a = hora del rellotge i textos del temps · b = data/textos del rellotge, temperatura i icona · h = llum de la finestra
 const ZZ_HALOS = {
-  halo1:{ a:'#c2441f', b:'#d0a524', h:'#cfe3ff', al:'22' }, // taronja / groc · blanc lunar
-  halo2:{ a:'#4a86e8', b:'#2fb3bb', h:'#3c9cd1', al:'2e' }, // blau / cian · barreja
-  halo3:{ a:'#c2441f', b:'#4a86e8', h:'#46e539', al:'2e' }, // taronja / blau · complementari
-  halo4:{ a:'#36b357', b:'#d0a524', h:'#83ac3d', al:'2e' }, // verd / groc · barreja
-  halo5:{ a:'#d0302f', b:'#2fb3bb', h:'#cfe3ff', al:'22' }, // vermell / cian · blanc lunar
-  halo6:{ a:'#d0a524', b:'#4a86e8', h:'#8d9586', al:'2e' }  // groc / blau · barreja
+  halo1:{ a:'#c2441f', b:'#d0a524', c:'#4a86e8', h:'#cfe3ff', al:'22' }, // taronja / groc · blanc lunar
+  halo2:{ a:'#4a86e8', b:'#2fb3bb', c:'#d0a524', h:'#3c9cd1', al:'2e' }, // blau / cian · barreja
+  halo3:{ a:'#c2441f', b:'#4a86e8', c:'#d0a524', h:'#46e539', al:'2e' }, // taronja / blau · complementari
+  halo4:{ a:'#36b357', b:'#d0a524', c:'#4a86e8', h:'#83ac3d', al:'2e' }, // verd / groc · barreja
+  halo5:{ a:'#d0302f', b:'#2fb3bb', c:'#d0a524', h:'#cfe3ff', al:'22' }, // vermell / cian · blanc lunar
+  halo6:{ a:'#d0a524', b:'#4a86e8', c:'#36b357', h:'#8d9586', al:'2e' }  // groc / blau · barreja
+};
+// Tercer color de les combinacions de dos colors: dia de la setmana, icona del temps i rètol «Zz»
+const ZZ_THIRD = {
+  'taronja+groc':'#3a74d0', 'blau+cian':'#b9921d', 'verd+groc':'#3a74d0',
+  'cian+taronja':'#b9921d', 'blau+groc':'#2f9f4c', 'verd+cian':'#a8361a'
 };
 const ZZ_TONE_KEY = 'kasioZzTone';
 let zzTone = 0;
@@ -3145,7 +3159,10 @@ try{ zzTone = Math.max(0, ZZ_TONES.indexOf(localStorage.getItem(ZZ_TONE_KEY) || 
 function applyZzTone(){
   const root = document.documentElement, hv = ZZ_HALOS[ZZ_TONES[zzTone]];
   root.classList.toggle('zz-halo', !!hv);
-  ['--ink-a','--ink-b','--halo-bg','--halo-edge','--halo-out'].forEach(k => root.style.removeProperty(k));
+  ['--ink-a','--ink-b','--ink-c','--halo-bg','--halo-edge','--halo-out'].forEach(k => root.style.removeProperty(k));
+  const third = hv ? hv.c : ZZ_THIRD[ZZ_TONES[zzTone]];
+  root.classList.toggle('zz-third', !!third);
+  if(third) root.style.setProperty('--ink-c', third);
   if(hv){
     root.style.setProperty('--ink-a', hv.a); root.style.setProperty('--ink-b', hv.b);
     root.style.setProperty('--halo-bg', `radial-gradient(ellipse at 50% 45%, ${hv.h}${hv.al}, ${hv.h}18 75%), #050505`);
@@ -3392,7 +3409,19 @@ function stopNoSleepVideo(){
   if(noSleepVideo){ noSleepVideo.pause(); }
   noSleepOn = false;
 }
-function wakeNeeded(){ return zzOn || alarms.some(a => a.on) || tmr.running; }
+let keepOn = false;
+try{ keepOn = localStorage.getItem('kasioKeepOn') === '1'; }catch(err){}
+function wakeNeeded(){ return zzOn || keepOn || alarms.some(a => a.on) || tmr.running; }
+function applyKeepOn(){
+  const b = document.getElementById('keepBtn');
+  if(b){ b.classList.toggle('on', keepOn); b.setAttribute('aria-pressed', String(keepOn)); }
+}
+function toggleKeepOn(){
+  keepOn = !keepOn;
+  try{ localStorage.setItem('kasioKeepOn', keepOn ? '1' : '0'); }catch(err){}
+  applyKeepOn();
+  updateWakeLock();
+}
 function screenKeptOn(){ return !!wakeLock || noSleepOn; }
 async function updateWakeLock(){
   const need = wakeNeeded();
@@ -4211,7 +4240,7 @@ function setupMatrix(){
   });
   window.addEventListener('resize', () => { if(mx.on) mxResize(); });
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!reduce) startMatrix(true);
+  // la pluja de codi ja no surt en obrir l'app: només amb dos tocs al rellotge
 }
 
 
@@ -4418,7 +4447,7 @@ const GUIDE = {
     label:'GUIA', foot:'LLISCA ↔ O TOCA ‹ › · ↕ ALTRES FINESTRES',
     pages:[
       ['BOTONS', [['LLUM','Vista de nit, amb colors foscos'],['Zz','Rellotge de tauleta: pantalla encesa i alarmes a punt'],['HORA',"Diu l'hora en veu alta i l'escriu"],['SO','Avís a cada hora en punt'],['ALARMA',"Obre les alarmes; si n'hi ha una sonant, l'atura"]]],
-      ['RELLOTGE', [['TOC','Canvia el color'],['2 TOCS','Pluja de codi; 2 tocs més la treuen'],['LLISCA','Hora · data · crono · compte enrere'],['CA FR EN…',"Idioma de l'app"]]],
+      ['RELLOTGE', [['TOC','Canvia el color'],['2 TOCS','Pluja de codi; 2 tocs més la treuen'],['LLISCA','Hora · data · crono · compte enrere'],['CA FR EN…',"Idioma de l'app"],['☀','Pantalla sempre encesa, sense Zz']]],
       ['FINESTRES', [['LLISCA ↕','Calendari, alarmes, temps, aire, ràdio, notícies…'],['LLISCA ↔','Al calendari, canvia de mes'],['DIA VERMELL','Toca-hi per veure quina festa és'],['TOC','Canvia el color']]],
       ['CRONÒMETRE', [['START / STOP','Engega i atura; en aturar desa el darrer parcial'],['LAP','Parcial de cada rellevista'],['CINTA','Parcials i acumulats; llisca-la de costat'],['RESET','Amb el crono aturat, ho esborra']]],
       ['COMPTE ENRERE', [['XIFRES','Toca-les per posar el temps'],['+1 / +5','Afegeix minuts'],['START','Engega; al 0 sona l\'alarma'],['Zz','Si no toques res en 10 s, passa a Zz']]],
@@ -4431,7 +4460,7 @@ const GUIDE = {
          cal1:'LLISCA ↕: ALTRES FINESTRES', cal2:'LLISCA ↔: MESOS', cal3:'TOC: COLOR', close:'TOCA PER TANCAR · MANTÉN PREMUT UN BOTÓ PER SABER QUÈ FA' },
     tip:{ nightToggle:'Vista de nit: colors foscos per a la nit', zzBtn:'Mode Zz: rellotge de tauleta, pantalla sempre encesa i alarmes a punt',
           speakBtn:"Diu l'hora en veu alta i l'escriu a sota", chimeToggle:"Activa o desactiva l'avís de cada hora en punt",
-          alarmBtn:"Obre les alarmes. Si n'hi ha una sonant, l'atura", helpBtn:'Mostra què fa cada part de la pantalla',
+          alarmBtn:"Obre les alarmes. Si n'hi ha una sonant, l'atura", keepBtn:'Pantalla sempre encesa, sense passar a Zz. Un altre toc la deixa apagar-se', helpBtn:'Mostra què fa cada part de la pantalla',
           sleepBtn:'Temporitzador de la ràdio: cada toc 15, 30, 45, 60, 90 min o OFF', stwRight:'Engega o atura el cronòmetre',
           stwLeft:'Crono en marxa: parcial (LAP). Aturat: ho esborra (RESET)', tmrStart:'Engega o atura el compte enrere',
           tmrReset:'Torna el compte enrere al temps inicial', tmrPlus1:'Afegeix 1 minut', tmrPlus5:'Afegeix 5 minuts',
@@ -4441,7 +4470,7 @@ const GUIDE = {
     label:'GUIDE', foot:'GLISSEZ ↔ OU TOUCHEZ ‹ › · ↕ AUTRES FENÊTRES',
     pages:[
       ['BOUTONS', [['LUM.','Mode nuit, couleurs sombres'],['Zz','Réveil de chevet : écran allumé et réveils prêts'],['HEURE',"Dit l'heure à voix haute et l'écrit"],['SON','Annonce de chaque heure pile'],['RÉVEIL','Ouvre les réveils ; arrête celui qui sonne']]],
-      ['MONTRE', [['TOUCHER','Change la couleur'],['2 TOUCHERS','Pluie de code ; 2 de plus pour la retirer'],['GLISSER','Heure · date · chrono · compte à rebours'],['CA FR EN…',"Langue de l'app"]]],
+      ['MONTRE', [['TOUCHER','Change la couleur'],['2 TOUCHERS','Pluie de code ; 2 de plus pour la retirer'],['GLISSER','Heure · date · chrono · compte à rebours'],['CA FR EN…',"Langue de l'app"],['☀','Écran toujours allumé, sans Zz']]],
       ['FENÊTRES', [['GLISSER ↕','Calendrier, réveils, météo, air, radio, infos…'],['GLISSER ↔','Dans le calendrier, change de mois'],['JOUR ROUGE','Touchez-le pour voir la fête'],['TOUCHER','Change la couleur']]],
       ['CHRONO', [['START / STOP','Démarre et arrête ; garde le dernier temps'],['LAP','Temps de chaque relayeur'],['BANDE','Temps et cumuls ; glissez-la de côté'],['RESET','Chrono arrêté : tout effacer']]],
       ['COMPTE À REBOURS', [['CHIFFRES','Touchez-les pour régler la durée'],['+1 / +5','Ajoute des minutes'],['START','Démarre ; à 0 le réveil sonne'],['Zz','Sans toucher pendant 10 s, passe en Zz']]],
@@ -4454,7 +4483,7 @@ const GUIDE = {
          cal1:'GLISSER ↕ : AUTRES FENÊTRES', cal2:'GLISSER ↔ : MOIS', cal3:'TOUCHER : COULEUR', close:'TOUCHEZ POUR FERMER · APPUI LONG SUR UN BOUTON POUR SAVOIR CE QU\'IL FAIT' },
     tip:{ nightToggle:'Mode nuit : couleurs sombres', zzBtn:'Mode Zz : réveil de chevet, écran toujours allumé et réveils prêts',
           speakBtn:"Dit l'heure à voix haute et l'écrit", chimeToggle:"Active ou coupe l'annonce de chaque heure pile",
-          alarmBtn:'Ouvre les réveils. Arrête celui qui sonne', helpBtn:"Montre ce que fait chaque partie de l'écran",
+          alarmBtn:'Ouvre les réveils. Arrête celui qui sonne', keepBtn:'Écran toujours allumé, sans passer en Zz. Un autre toucher le libère', helpBtn:"Montre ce que fait chaque partie de l'écran",
           sleepBtn:'Minuterie de la radio : 15, 30, 45, 60, 90 min ou OFF', stwRight:'Démarre ou arrête le chrono',
           stwLeft:'En marche : temps intermédiaire (LAP). Arrêté : effacer (RESET)', tmrStart:'Démarre ou arrête le compte à rebours',
           tmrReset:'Revient à la durée de départ', tmrPlus1:'Ajoute 1 minute', tmrPlus5:'Ajoute 5 minutes',
@@ -4464,7 +4493,7 @@ const GUIDE = {
     label:'GUIDE', foot:'SWIPE ↔ OR TAP ‹ › · ↕ OTHER WINDOWS',
     pages:[
       ['BUTTONS', [['LIGHT','Night view, dark colours'],['Zz','Bedside clock: screen on and alarms ready'],['TIME','Says the time aloud and writes it'],['SOUND','Chime every hour on the hour'],['ALARM','Opens the alarms; stops one that is ringing']]],
-      ['CLOCK', [['TAP','Changes the colour'],['DOUBLE TAP','Code rain; double tap again to remove it'],['SWIPE','Time · date · stopwatch · countdown'],['CA FR EN…','App language']]],
+      ['CLOCK', [['TAP','Changes the colour'],['DOUBLE TAP','Code rain; double tap again to remove it'],['SWIPE','Time · date · stopwatch · countdown'],['CA FR EN…','App language'],['☀','Screen always on, without Zz']]],
       ['WINDOWS', [['SWIPE ↕','Calendar, alarms, weather, air, radio, news…'],['SWIPE ↔','In the calendar, changes month'],['RED DAY','Tap it to see the holiday'],['TAP','Changes the colour']]],
       ['STOPWATCH', [['START / STOP','Starts and stops; keeps the last split'],['LAP','Split for each relay swimmer'],['TAPE','Splits and totals; swipe it sideways'],['RESET','When stopped, clears everything']]],
       ['COUNTDOWN', [['DIGITS','Tap them to set the time'],['+1 / +5','Adds minutes'],['START','Starts; the alarm rings at 0'],['Zz','After 10 s untouched, goes to Zz']]],
@@ -4477,7 +4506,7 @@ const GUIDE = {
          cal1:'SWIPE ↕: OTHER WINDOWS', cal2:'SWIPE ↔: MONTHS', cal3:'TAP: COLOUR', close:'TAP TO CLOSE · LONG-PRESS A BUTTON TO SEE WHAT IT DOES' },
     tip:{ nightToggle:'Night view: dark colours for night time', zzBtn:'Zz mode: bedside clock, screen always on and alarms ready',
           speakBtn:'Says the time aloud and writes it below', chimeToggle:'Turns the hourly chime on or off',
-          alarmBtn:'Opens the alarms. Stops one that is ringing', helpBtn:'Shows what each part of the screen does',
+          alarmBtn:'Opens the alarms. Stops one that is ringing', keepBtn:'Keeps the screen on without Zz mode. Tap again to let it sleep', helpBtn:'Shows what each part of the screen does',
           sleepBtn:'Radio sleep timer: each tap 15, 30, 45, 60, 90 min or OFF', stwRight:'Starts or stops the stopwatch',
           stwLeft:'Running: split (LAP). Stopped: clear (RESET)', tmrStart:'Starts or stops the countdown',
           tmrReset:'Back to the starting time', tmrPlus1:'Adds 1 minute', tmrPlus5:'Adds 5 minutes',
@@ -4487,7 +4516,7 @@ const GUIDE = {
     label:'HILFE', foot:'WISCHEN ↔ ODER ‹ › TIPPEN · ↕ ANDERE FENSTER',
     pages:[
       ['TASTEN', [['LICHT','Nachtansicht, dunkle Farben'],['Zz','Nachttischuhr: Bildschirm an, Wecker bereit'],['ZEIT','Sagt die Uhrzeit an und schreibt sie'],['TON','Signal zu jeder vollen Stunde'],['WECKER','Öffnet die Wecker; stoppt einen klingelnden']]],
-      ['UHR', [['TIPPEN','Ändert die Farbe'],['2× TIPPEN','Code-Regen; nochmal 2× zum Entfernen'],['WISCHEN','Zeit · Datum · Stoppuhr · Countdown'],['CA FR EN…','Sprache der App']]],
+      ['UHR', [['TIPPEN','Ändert die Farbe'],['2× TIPPEN','Code-Regen; nochmal 2× zum Entfernen'],['WISCHEN','Zeit · Datum · Stoppuhr · Countdown'],['CA FR EN…','Sprache der App'],['☀','Bildschirm immer an, ohne Zz']]],
       ['FENSTER', [['WISCHEN ↕','Kalender, Wecker, Wetter, Luft, Radio, News…'],['WISCHEN ↔','Im Kalender: Monat wechseln'],['ROTER TAG','Antippen zeigt den Feiertag'],['TIPPEN','Ändert die Farbe']]],
       ['STOPPUHR', [['START / STOP','Startet und stoppt; letzte Zwischenzeit bleibt'],['LAP','Zwischenzeit jedes Staffelschwimmers'],['BAND','Zwischen- und Gesamtzeiten; seitlich wischen'],['RESET','Gestoppt: alles löschen']]],
       ['COUNTDOWN', [['ZIFFERN','Antippen, um die Zeit einzustellen'],['+1 / +5','Fügt Minuten hinzu'],['START','Startet; bei 0 klingelt der Wecker'],['Zz','Nach 10 s ohne Berührung: Zz']]],
@@ -4500,7 +4529,7 @@ const GUIDE = {
          cal1:'WISCHEN ↕: ANDERE FENSTER', cal2:'WISCHEN ↔: MONATE', cal3:'TIPPEN: FARBE', close:'TIPPEN ZUM SCHLIESSEN · TASTE LANG DRÜCKEN ZEIGT IHRE FUNKTION' },
     tip:{ nightToggle:'Nachtansicht: dunkle Farben für die Nacht', zzBtn:'Zz-Modus: Nachttischuhr, Bildschirm immer an, Wecker bereit',
           speakBtn:'Sagt die Uhrzeit an und schreibt sie darunter', chimeToggle:'Stundensignal ein- oder ausschalten',
-          alarmBtn:'Öffnet die Wecker. Stoppt einen klingelnden', helpBtn:'Zeigt, was jeder Teil des Bildschirms tut',
+          alarmBtn:'Öffnet die Wecker. Stoppt einen klingelnden', keepBtn:'Bildschirm bleibt an, ohne Zz-Modus. Nochmal tippen zum Freigeben', helpBtn:'Zeigt, was jeder Teil des Bildschirms tut',
           sleepBtn:'Schlummertimer: je Tippen 15, 30, 45, 60, 90 Min. oder AUS', stwRight:'Startet oder stoppt die Stoppuhr',
           stwLeft:'Läuft: Zwischenzeit (LAP). Gestoppt: löschen (RESET)', tmrStart:'Startet oder stoppt den Countdown',
           tmrReset:'Zurück zur Startzeit', tmrPlus1:'Fügt 1 Minute hinzu', tmrPlus5:'Fügt 5 Minuten hinzu',
@@ -4510,7 +4539,7 @@ const GUIDE = {
     label:'GUIDA', foot:'SCORRI ↔ O TOCCA ‹ › · ↕ ALTRE FINESTRE',
     pages:[
       ['PULSANTI', [['LUCE','Vista notte, colori scuri'],['Zz','Orologio da comodino: schermo acceso e sveglie pronte'],['ORA',"Dice l'ora a voce e la scrive"],['SUONO','Avviso a ogni ora in punto'],['SVEGLIA','Apre le sveglie; ferma quella che suona']]],
-      ['OROLOGIO', [['TOCCO','Cambia il colore'],['2 TOCCHI','Pioggia di codice; altri 2 per toglierla'],['SCORRI','Ora · data · crono · conto alla rovescia'],['CA FR EN…',"Lingua dell'app"]]],
+      ['OROLOGIO', [['TOCCO','Cambia il colore'],['2 TOCCHI','Pioggia di codice; altri 2 per toglierla'],['SCORRI','Ora · data · crono · conto alla rovescia'],['CA FR EN…',"Lingua dell'app"],['☀','Schermo sempre acceso, senza Zz']]],
       ['FINESTRE', [['SCORRI ↕','Calendario, sveglie, meteo, aria, radio, notizie…'],['SCORRI ↔','Nel calendario cambia mese'],['GIORNO ROSSO','Toccalo per vedere la festa'],['TOCCO','Cambia il colore']]],
       ['CRONOMETRO', [['START / STOP','Avvia e ferma; tiene l\'ultimo parziale'],['LAP','Parziale di ogni staffettista'],['NASTRO','Parziali e totali; scorrilo di lato'],['RESET','A crono fermo, cancella tutto']]],
       ['CONTO ALLA ROVESCIA', [['CIFRE','Toccale per impostare il tempo'],['+1 / +5','Aggiunge minuti'],['START','Avvia; a 0 suona la sveglia'],['Zz','Dopo 10 s senza toccare, passa a Zz']]],
@@ -4523,7 +4552,7 @@ const GUIDE = {
          cal1:'SCORRI ↕: ALTRE FINESTRE', cal2:'SCORRI ↔: MESI', cal3:'TOCCO: COLORE', close:'TOCCA PER CHIUDERE · PRESSIONE LUNGA SU UN PULSANTE PER SAPERE COSA FA' },
     tip:{ nightToggle:'Vista notte: colori scuri per la notte', zzBtn:'Modalità Zz: orologio da comodino, schermo sempre acceso e sveglie pronte',
           speakBtn:"Dice l'ora a voce e la scrive sotto", chimeToggle:"Attiva o disattiva l'avviso di ogni ora in punto",
-          alarmBtn:'Apre le sveglie. Ferma quella che suona', helpBtn:'Mostra cosa fa ogni parte dello schermo',
+          alarmBtn:'Apre le sveglie. Ferma quella che suona', keepBtn:'Schermo sempre acceso, senza modalità Zz. Un altro tocco lo libera', helpBtn:'Mostra cosa fa ogni parte dello schermo',
           sleepBtn:'Timer della radio: 15, 30, 45, 60, 90 min o OFF', stwRight:'Avvia o ferma il cronometro',
           stwLeft:'In marcia: parziale (LAP). Fermo: cancella (RESET)', tmrStart:'Avvia o ferma il conto alla rovescia',
           tmrReset:'Torna al tempo iniziale', tmrPlus1:'Aggiunge 1 minuto', tmrPlus5:'Aggiunge 5 minuti',
@@ -4533,7 +4562,7 @@ const GUIDE = {
     label:'GUÍA', foot:'DESLIZA ↔ O TOCA ‹ › · ↕ OTRAS VENTANAS',
     pages:[
       ['BOTONES', [['LUZ','Vista de noche, colores oscuros'],['Zz','Reloj de mesilla: pantalla encendida y alarmas listas'],['HORA','Dice la hora en voz alta y la escribe'],['SONIDO','Aviso a cada hora en punto'],['ALARMA','Abre las alarmas; para la que suena']]],
-      ['RELOJ', [['TOQUE','Cambia el color'],['2 TOQUES','Lluvia de código; 2 más la quitan'],['DESLIZA','Hora · fecha · crono · cuenta atrás'],['CA FR EN…','Idioma de la app']]],
+      ['RELOJ', [['TOQUE','Cambia el color'],['2 TOQUES','Lluvia de código; 2 más la quitan'],['DESLIZA','Hora · fecha · crono · cuenta atrás'],['CA FR EN…','Idioma de la app'],['☀','Pantalla siempre encendida, sin Zz']]],
       ['VENTANAS', [['DESLIZA ↕','Calendario, alarmas, tiempo, aire, radio, noticias…'],['DESLIZA ↔','En el calendario, cambia de mes'],['DÍA ROJO','Tócalo para ver qué fiesta es'],['TOQUE','Cambia el color']]],
       ['CRONÓMETRO', [['START / STOP','Pone en marcha y para; guarda el último parcial'],['LAP','Parcial de cada relevista'],['CINTA','Parciales y acumulados; deslízala de lado'],['RESET','Con el crono parado, lo borra']]],
       ['CUENTA ATRÁS', [['CIFRAS','Tócalas para poner el tiempo'],['+1 / +5','Añade minutos'],['START','Arranca; a 0 suena la alarma'],['Zz','Sin tocar nada 10 s, pasa a Zz']]],
@@ -4546,7 +4575,7 @@ const GUIDE = {
          cal1:'DESLIZA ↕: OTRAS VENTANAS', cal2:'DESLIZA ↔: MESES', cal3:'TOQUE: COLOR', close:'TOCA PARA CERRAR · MANTÉN PULSADO UN BOTÓN PARA SABER QUÉ HACE' },
     tip:{ nightToggle:'Vista de noche: colores oscuros', zzBtn:'Modo Zz: reloj de mesilla, pantalla siempre encendida y alarmas listas',
           speakBtn:'Dice la hora en voz alta y la escribe debajo', chimeToggle:'Activa o desactiva el aviso de cada hora en punto',
-          alarmBtn:'Abre las alarmas. Para la que está sonando', helpBtn:'Muestra qué hace cada parte de la pantalla',
+          alarmBtn:'Abre las alarmas. Para la que está sonando', keepBtn:'Pantalla siempre encendida, sin modo Zz. Otro toque la deja apagarse', helpBtn:'Muestra qué hace cada parte de la pantalla',
           sleepBtn:'Temporizador de la radio: 15, 30, 45, 60, 90 min u OFF', stwRight:'Pone en marcha o para el cronómetro',
           stwLeft:'En marcha: parcial (LAP). Parado: borrar (RESET)', tmrStart:'Pone en marcha o para la cuenta atrás',
           tmrReset:'Vuelve al tiempo inicial', tmrPlus1:'Añade 1 minuto', tmrPlus5:'Añade 5 minutos',
@@ -4655,6 +4684,8 @@ function setupHelp(){
   renderGuide();
   const hb = document.getElementById('helpBtn');
   if(hb) hb.addEventListener('click', e => { e.stopPropagation(); openHelp(); });
+  const kb = document.getElementById('keepBtn');
+  if(kb){ kb.addEventListener('click', e => { e.stopPropagation(); toggleKeepOn(); }); applyKeepOn(); }
   const ov = document.getElementById('helpOv');
   if(ov) ov.addEventListener('click', e => { e.stopPropagation(); closeHelp(); });
   window.addEventListener('resize', closeHelp);
