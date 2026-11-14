@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Kasio</title>
+<meta name="description" content="Kasio: rellotge digital d'estil Casio amb calendari, alarmes, temps, qualitat de l'aire, ràdio i notícies.">
 <meta name="application-name" content="Kasio">
 <meta name="apple-mobile-web-app-title" content="Kasio">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -227,7 +228,7 @@
     z-index:3;
   }
 
-  /* ============ FILA DE DALT DEL RELLOTGE: dia · 7 idiomes · senyal ============ */
+  /* ============ FILA DE DALT DEL RELLOTGE: dia · idiomes · senyal ============ */
   .lcd-top{
     display:grid;
     grid-template-columns:auto 1fr auto;
@@ -1145,6 +1146,19 @@
   /* ===== Botó «pantalla encesa» (sense passar a Zz) ===== */
   .keep-btn svg{ width:13px; height:13px; display:block; }
   .keep-btn.on{ background:var(--lcd-ink); color:var(--lcd-bg-1); opacity:1; }
+
+  /* ===== Retocs de l'auditoria ===== */
+  /* El cronòmetre canvia a cada fotograma: sense la transició de .4s les centèsimes es llegeixen netes */
+  #stwDisplay .seg{ transition:none; }
+  /* Focus visible quan es fa servir el teclat */
+  .lcd-screen :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .rbtn:focus-visible{ outline:none; }
+  .rbtn:focus-visible .disc{ outline:2px solid var(--accent-light); outline-offset:5px; }
+  /* Si el sistema demana menys moviment, els canvis són instantanis (els parpelleigs d'avís es mantenen) */
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:.01ms !important; }
+    .wv.on.enter{ animation:none; }
+  }
 </style>
 
 </head>
@@ -1256,7 +1270,7 @@
                 <div class="cal-nav">
                   <button class="cal-arrow yr" id="calPrevY" type="button" data-i18n-aria="prevYear" aria-label="Any anterior">&#171;</button>
                   <button class="cal-arrow" id="calPrev" type="button" data-i18n-aria="prev" aria-label="Mes anterior">&#8249;</button>
-                  <span class="cal-month" id="calMonth" role="button" tabindex="0" data-i18n-aria="today" aria-label="Torna a avui">-- ----</span>
+                  <span class="cal-month" id="calMonth" role="button" tabindex="0">-- ----</span>
                   <button class="cal-arrow" id="calNext" type="button" data-i18n-aria="next" aria-label="Mes següent">&#8250;</button>
                   <button class="cal-arrow yr" id="calNextY" type="button" data-i18n-aria="nextYear" aria-label="Any següent">&#187;</button>
                 </div>
@@ -1437,8 +1451,11 @@ function initDateDisplay(){
 function setSegDigits(els, chars){
   const order = ['a','b','c','d','e','f','g'];
   chars.forEach((ch, i) => {
+    const polys = els[i];
+    if(!polys || polys.ch === ch) return; // la xifra no ha canviat: no es toca el DOM
+    polys.ch = ch;
     const segs = SEGMENTS[ch] || [];
-    els[i].forEach((poly, k) => {
+    polys.forEach((poly, k) => {
       const on = segs.includes(order[k]);
       poly.classList.toggle('on', on);
       poly.classList.toggle('off', !on);
@@ -1467,6 +1484,7 @@ function initTimeDisplay(){
     .map(svg => Array.from(svg.querySelectorAll('polygon')));
 }
 
+let shownDay = new Date().toDateString(); // dia que es veu a la data i al calendari
 function renderTime(){
   if(!digitEls) initTimeDisplay();
   const now = new Date();
@@ -1484,15 +1502,10 @@ function renderTime(){
   checkTimer(now);
   checkAutoZz();
   renderWatchView(now);
-  const order = ['a','b','c','d','e','f','g'];
-  chars.forEach((ch, i) => {
-    const segs = SEGMENTS[ch] || [];
-    digitEls[i].forEach((poly, k) => {
-      const on = segs.includes(order[k]);
-      poly.classList.toggle('on', on);
-      poly.classList.toggle('off', !on);
-    });
-  });
+  setSegDigits(digitEls, chars);
+  // Canvi de dia: la data i el calendari es posen al dia al mateix segon de mitjanit
+  const dayKey = now.toDateString();
+  if(dayKey !== shownDay){ shownDay = dayKey; renderDate(); buildCalendar(); }
 }
 
 /* ===================== LLENGÜES ===================== */
@@ -1522,6 +1535,7 @@ const I18N = {
     name: 'Français',
     days: ['DI','LU','MA','ME','JE','VE','SA'],
     months: ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'],
+    monthsShort: ['JANV','FÉVR','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'], // amb 3 lletres, JUIN i JUILLET serien iguals
     ui: { light:'LUM.', cal:'CAL', mTemp:'TEMP', mHumid:'HUMID', mFeels:'RESS', mAlt:'ALT',
           loading:'CHARGE', unknownPlace:'LIEU INCONNU', approx:'(approx.)', approxOnly:'LIEU APPROX.', na:'N/D',
           speakLabel:'HEURE', night:'Mode nuit', rac1:'Écouter La Competència (RAC1)', speak:"Dire l'heure",
@@ -1916,7 +1930,7 @@ function checkHourlyChime(now){
 }
 
 
-/* ===================== TEXTOS DE LES FINESTRES (7 llengües) ===================== */
+/* ===================== TEXTOS DE LES FINESTRES (6 llengües) ===================== */
 const I18N_EXTRA = {
   ca:{ ui:{ zzWake:'TOCA PER NO APAGAR', zzAria:'Mode Zz: pantalla encesa i alarmes a punt', zzNoAlarm:'SENSE ALARMA', zzTap:'TOCA LA PANTALLA', sendAlarm:'Posa-la al rellotge del mòbil', onlyPhone:'AIXÒ NOMÉS FUNCIONA DES DEL MÒBIL', iosShortcutHelp:'CAL LA DRECERA «{n}» A L\'APP DRECERES (ES CREA UN SOL COP)', once:'UN COP', prevYear:'Any anterior', nextYear:'Any següent', today:'Torna a avui', soundLabel:'SO', alarmLabel:'ALARMA', alarmAria:'Alarmes', pAlarmes:'ALARMES', tapChange:'TOCA PER CANVIAR', everyDay:'CADA DIA', stopAlarm:'ATURA', pAvisos:'AVISOS', pUbicacio:'UBICACIÓ', pTemps:'TEMPS', pAire:'AIRE', pRadio:'RÀDIO', pPodcasts:'PODCASTS', pNoticies:'NOTÍCIES',
       next12:'PROPERES 12 H', rAlt:'ALT', rWind:'VENT', rGust:'RÀF.', rRain6:'PLUJA 6H', rProb:'PROB.', aqTitle:'ÍNDEX EUROPEU', live:'EN DIRECTE',
@@ -1997,6 +2011,7 @@ function buildCalendar(slideDirection){
   const year = displayed.getFullYear();
   const month = displayed.getMonth();
   document.getElementById('calMonth').textContent = `${T().months[month]} ${year}`;
+  updateCalNavButtons();
 
   const grid = document.getElementById('calGrid');
   const previousOpenKey = openHolidayKey;
@@ -2046,6 +2061,11 @@ function buildCalendar(slideDirection){
         el.setAttribute('aria-label', `${d} ${T().months[month]}: ${holidayName}`);
         el.addEventListener('click', (e) => {
           e.stopPropagation(); // no ha de canviar el tema en tocar la pantalla
+          toggleHolidayPopup(el, holidayName, key);
+        });
+        el.addEventListener('keydown', (e) => { // amb teclat: Retorn o espai
+          if(e.key !== 'Enter' && e.key !== ' ') return;
+          e.preventDefault(); e.stopPropagation();
           toggleHolidayPopup(el, holidayName, key);
         });
         if(key === previousOpenKey) cellToReopen = el;
@@ -2098,7 +2118,11 @@ function goToToday(){
 function updateCalNavButtons(){
   // Quan no es veu el mes actual, el títol es pot tocar per tornar-hi
   const t = document.getElementById('calMonth');
-  if(t) t.classList.toggle('away', calendarMonthOffset !== 0);
+  if(!t) return;
+  const away = calendarMonthOffset !== 0;
+  t.classList.toggle('away', away);
+  // El lector de pantalla diu sempre el mes; «torna a avui» només quan té sentit
+  t.setAttribute('aria-label', t.textContent + (away ? ' · ' + T().ui.today : ''));
 }
 
 function setupCalNavButtons(){
@@ -2139,6 +2163,7 @@ function showView(name, dir){
     const was = el.classList.contains('on');
     const on = el.dataset.view === name;
     el.classList.toggle('on', on);
+    el.toggleAttribute('inert', !on); // les finestres amagades no reben el focus del teclat ni del lector
     if(was && !on){
       el.classList.add('leaving');
       setTimeout(() => el.classList.remove('leaving'), 320);
@@ -2264,18 +2289,30 @@ let lastElevation = null;
 let lastWeather = null;
 let lastAir = null;
 
+// JSON amb temps límit (la petició es talla) i error si el servidor no respon bé
+function getJSON(url, ms = 12000){
+  const ctl = ('AbortController' in window) ? new AbortController() : null;
+  const t = setTimeout(() => { if(ctl) ctl.abort(); }, ms);
+  return fetch(url, ctl ? { signal:ctl.signal } : undefined)
+    .then(r => { if(!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .finally(() => clearTimeout(t));
+}
+
+let placeToken = 0;
 async function fetchPlaceName(lat, lon, isFallback){
   lastCoords = { lat, lon, isFallback };
   const geoLang = currentLang;
+  const token = ++placeToken; // si es canvia de llengua a mig camí, només compta l'última resposta
+  let next;
   try{
-    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${geoLang}`);
-    const d = await res.json();
+    const d = await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${geoLang}`);
     const name = d.city || d.locality || d.principalSubdivision || '';
-    const region = regionLabel(d, name);
-    placeState = { name, region, isFallback, failed:false };
+    next = { name, region:regionLabel(d, name), isFallback, failed:false };
   }catch(err){
-    placeState = { name:'', region:'', isFallback, failed:true };
+    next = { name:'', region:'', isFallback, failed:true };
   }
+  if(token !== placeToken) return;
+  placeState = next;
   renderPlace();
 }
 
@@ -2329,8 +2366,8 @@ function renderPlace(){
   if(alt) alt.innerHTML = lastElevation != null ? `${Math.round(lastElevation)}<small>m</small>` : '--';
   const la = document.getElementById('ubLat'), lo = document.getElementById('ubLon');
   if(lastCoords){
-    const NS = currentLang === 'de' ? ['N','S'] : ['N','S'];
-    const EW = ['de'].includes(currentLang) ? ['O','W'] : (['en'].includes(currentLang) ? ['E','W'] : ['E','O']);
+    const NS = ['N','S'];
+    const EW = currentLang === 'de' ? ['O','W'] : (currentLang === 'en' ? ['E','W'] : ['E','O']);
     if(la) la.textContent = fmtCoord(lastCoords.lat, NS[0], NS[1]);
     if(lo) lo.textContent = fmtCoord(lastCoords.lon, EW[0], EW[1]);
   }
@@ -2467,7 +2504,7 @@ async function fetchWeather(lat, lon){
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m` +
       `&hourly=precipitation_probability,precipitation,weather_code,wind_gusts_10m,temperature_2m&forecast_days=2&timezone=auto`;
-    const w = await (await fetch(url)).json();
+    const w = await getJSON(url);
     if(!w || !w.current) throw new Error('buit');
     lastWeather = w;
     updateRainIcon(w);
@@ -2485,7 +2522,7 @@ async function fetchAir(lat, lon){
   try{
     const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}` +
       `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone&timezone=auto`;
-    const a = await (await fetch(url)).json();
+    const a = await getJSON(url);
     if(!a || !a.current) throw new Error('buit');
     lastAir = a;
   }catch(err){
@@ -2496,7 +2533,7 @@ async function fetchAir(lat, lon){
 
 async function fetchElevation(lat, lon){
   try{
-    const e = await (await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`)).json();
+    const e = await getJSON(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
     if(e && e.elevation && e.elevation.length) lastElevation = e.elevation[0];
   }catch(err){}
   renderPlace();
@@ -2550,20 +2587,27 @@ function refreshData(){
   else if(now - lastWxAt >= (zzOn ? 30 : 15) * 60 * 1000) refreshWeatherOnly();
 }
 document.addEventListener('visibilitychange', () => { if(!document.hidden) refreshData(); });
+// En recuperar la connexió, es torna a demanar el que havia fallat sense esperar el proper torn
+window.addEventListener('online', () => {
+  if(!lastCoords) return;
+  refreshWeatherOnly();
+  if(lastAir === 'error'){ lastAirAt = Date.now(); fetchAir(lastCoords.lat, lastCoords.lon); }
+  if(placeState && placeState.failed) fetchPlaceName(lastCoords.lat, lastCoords.lon, lastCoords.isFallback);
+});
 
 function initLocationData(){
-  if('geolocation' in navigator){
-    navigator.geolocation.getCurrentPosition(
-      pos => fetchAll(pos.coords.latitude, pos.coords.longitude, false),
-      err => {
-        console.warn('Geolocalització no disponible, s\'usa la ubicació de reserva:', err.message);
-        fetchAll(FALLBACK_COORDS.lat, FALLBACK_COORDS.lon, true);
-      },
-      { timeout:10000, maximumAge:0, enableHighAccuracy:true }
-    );
-  } else {
+  const fallback = err => {
+    console.warn('Geolocalització no disponible, s\'usa la ubicació de reserva:', err && err.message);
     fetchAll(FALLBACK_COORDS.lat, FALLBACK_COORDS.lon, true);
-  }
+  };
+  if(!('geolocation' in navigator)){ fallback(); return; }
+  const ok = pos => fetchAll(pos.coords.latitude, pos.coords.longitude, false);
+  navigator.geolocation.getCurrentPosition(ok, err => {
+    // Sense permís (codi 1) no hi ha res a fer. Si només ha fallat el GPS (interior, temps esgotat),
+    // abans de recórrer a Ripollet es prova la posició aproximada de la xarxa.
+    if(err && err.code === 1){ fallback(err); return; }
+    navigator.geolocation.getCurrentPosition(ok, fallback, { timeout:8000, maximumAge:30 * 60 * 1000, enableHighAccuracy:false });
+  }, { timeout:10000, maximumAge:0, enableHighAccuracy:true });
 }
 
 /* ===================== REPRODUCTOR (ràdio i podcasts) ===================== */
@@ -2957,6 +3001,8 @@ const PROXIES = [
   u => 'https://corsproxy.io/?url=' + encodeURIComponent(u)
 ];
 function cleanText(s){ return (s || '').replace(/\s+/g, ' ').trim(); }
+// Els titulars venen de servidors intermediaris: només s'accepten enllaços http(s)
+function safeUrl(u){ u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
 
 // Català: secció «Al minut» de la portada de l'ACN (no té RSS)
 const ACN_URL = 'https://www.acn.cat/';
@@ -3023,7 +3069,6 @@ function feedHeadlines(rss){
 }
 
 // Per ordre de preferència: si una font no respon, es prova la següent.
-//  - Portuguès: l'agència Lusa (via Google Notícies), Observador i RTP.
 const NEWS_FEEDS = {
   ca: [
     { label:'ACN', load:() => headlinesViaProxy(0) },
@@ -3080,12 +3125,12 @@ function loadNews(force){
     newsLoadedAt = Date.now();
     setStatus('newsSource', source.label);
     box.innerHTML = '';
-    headlines.slice(0, MAX_NEWS).forEach((h, i) => {
+    headlines.filter(h => safeUrl(h.url)).slice(0, MAX_NEWS).forEach((h, i) => {
       const a = document.createElement('a');
       a.className = 'row' + (i === 0 ? ' latest' : '');
-      a.href = h.url;
+      a.href = safeUrl(h.url);
       a.target = '_blank';
-      a.rel = 'noopener';
+      a.rel = 'noopener noreferrer';
       a.innerHTML = `<span class="n">${String(i + 1).padStart(2,'0')}</span><span class="t2"></span>`;
       a.querySelector('.t2').textContent = h.titol;
       a.addEventListener('click', e => e.stopPropagation());
@@ -3211,7 +3256,7 @@ function initTheme(){
   if(nightBtn) nightBtn.addEventListener('click', toggleNight);
 }
 
-/* ===================== LLENGUA: 7 botons a la pantalla ===================== */
+/* ===================== LLENGUA: un botó per llengua a la pantalla ===================== */
 function buildLangButtons(){
   const row = document.getElementById('langRow');
   if(!row) return;
@@ -3246,6 +3291,11 @@ function applyStaticTexts(){
   });
   const lr = document.getElementById('langRow');
   if(lr) lr.setAttribute('aria-label', t.ui.lang);
+  // Els botons «?» i «pantalla encesa» també s'anuncien en la llengua triada
+  const tips = (GUIDE[currentLang] || GUIDE.ca).tip;
+  const hb = document.getElementById('helpBtn'), kb = document.getElementById('keepBtn');
+  if(hb) hb.setAttribute('aria-label', tips.helpBtn);
+  if(kb) kb.setAttribute('aria-label', tips.keepBtn);
   renderPlace();
   if(typeof renderGuide === 'function') renderGuide();
 }
@@ -3307,6 +3357,7 @@ let alarms = [
 ];
 let ringing = null;        // { i, until, timer }
 const alarmFired = {};     // per no repetir la mateixa alarma el mateix dia
+const alarmArmedAt = {};   // moment en què s'ha activat o canviat cada alarma (en aquesta sessió)
 const ALARM_GRACE_MS = 3 * 60 * 1000; // si el mòbil ha frenat la pàgina, encara sona fins a 3 min tard
 
 function loadAlarms(){
@@ -3363,6 +3414,7 @@ function unlockAlarmAudio(){
   alarmAudio.loop = false;
   const p = alarmAudio.play();
   if(p && p.then) p.then(() => {
+    if(ringing){ alarmAudioUnlocked = true; return; } // ha començat a sonar mentrestant: no s'ha de tallar
     alarmAudio.pause();
     alarmAudio.currentTime = 0;
     alarmAudio.muted = false;
@@ -3512,8 +3564,10 @@ function renderAlarms(){
   updateAlarmIndicators();
 }
 
+// Es crida quan s'activa una alarma o se'n canvia l'hora
 function clearFired(i){
   Object.keys(alarmFired).forEach(k => { if(k.split('|')[1] === String(i)) delete alarmFired[k]; });
+  alarmArmedAt[i] = Date.now();
 }
 
 
@@ -3565,6 +3619,8 @@ function checkAlarms(now){
     const at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0);
     const late = now - at;
     if(late < 0 || late > ALARM_GRACE_MS) continue;
+    // Activada quan l'hora ja havia passat (fins a 3 min abans): no ha de sonar ara, sinó el proper dia
+    if(alarmArmedAt[i] && at.getTime() < alarmArmedAt[i]) continue;
     const key = now.toDateString() + '|' + i + '|' + a.time;
     if(alarmFired[key]) continue;
     alarmFired[key] = true;
@@ -3724,8 +3780,7 @@ function setZz(on, auto){
     hideHolidayPopup();
     if(!auto && currentView !== 'cal') showView('cal', -1);
   } else {
-    const w = document.querySelector('.watch');
-    if(w) w.style.transform = '';
+    document.querySelectorAll('.watch').forEach(w => { w.style.transform = ''; });
   }
   applyTheme();
   updateZzInfo();
@@ -4239,7 +4294,6 @@ function setupMatrix(){
     if(now - mx.lastTap < 400){ mx.lastTap = 0; stopMatrix(); } else mx.lastTap = now;
   });
   window.addEventListener('resize', () => { if(mx.on) mxResize(); });
-  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // la pluja de codi ja no surt en obrir l'app: només amb dos tocs al rellotge
 }
 
@@ -4714,6 +4768,29 @@ function setupHelp(){
     e.preventDefault(); e.stopImmediatePropagation();
   }, true);
   document.addEventListener('contextmenu', e => { if(e.target.closest && e.target.closest(LP_SEL)) e.preventDefault(); });
+  // Teclat (ordinador): Esc tanca o atura; fletxes amunt/avall canvien de finestra; esquerra/dreta, de mes
+  document.addEventListener('keydown', e => {
+    if(e.altKey || e.ctrlKey || e.metaKey) return;
+    const helpOpen = !!(ov && ov.classList.contains('on'));
+    if(e.key === 'Escape'){
+      if(ringing) stopAlarm();
+      else if(mx.on) stopMatrix();
+      else if(helpOpen) closeHelp();
+      else hideHolidayPopup();
+      return;
+    }
+    const tag = (e.target && e.target.tagName) || '';
+    if(/^(INPUT|SELECT|TEXTAREA)$/.test(tag) || zzOn || mx.on || helpOpen) return;
+    // si la pàgina és més alta que la finestra, amunt/avall continuen servint per desplaçar-la
+    const scrolls = document.documentElement.scrollHeight > window.innerHeight + 1;
+    if((e.key === 'ArrowDown' || e.key === 'PageDown') && !scrolls){ e.preventDefault(); changeView(1); }
+    else if((e.key === 'ArrowUp' || e.key === 'PageUp') && !scrolls){ e.preventDefault(); changeView(-1); }
+    else if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      if(currentView === 'cal'){ e.preventDefault(); navigateMonth(d); }
+      else if(currentView === 'guia'){ e.preventDefault(); guideStep(d); }
+    }
+  });
 }
 
 /* ===================== INICI ===================== */
@@ -4734,6 +4811,7 @@ renderWeather();
 renderAir();
 renderRadios();
 renderDots();
+document.querySelectorAll('#views .view').forEach(el => el.toggleAttribute('inert', !el.classList.contains('on')));
 applyStaticTexts();
 initLocationData();
 
@@ -4742,20 +4820,26 @@ setupHelp();
 setupMatrix();
 setupSleep();
 
-setInterval(renderTime, 1000);
-let calDay = new Date().toDateString();
-setInterval(() => {
-  renderDate();
-  // el calendari només es torna a dibuixar quan canvia el dia
-  const d = new Date().toDateString();
-  if(d !== calDay){ calDay = d; buildCalendar(); }
-}, 60 * 1000);
+// El tic s'alinea amb el canvi de segon del sistema: el rellotge no va endarrerit
+// ni se salta cap segon (un setInterval de 1000 ms va derivant amb les hores).
+// La data i el calendari es posen al dia des de renderTime(), al canvi de dia.
+(function tick(first){
+  try{ if(!first) renderTime(); }
+  finally{ setTimeout(tick, 1000 - (Date.now() % 1000) + 10); }
+})(true);
 setInterval(refreshData, 5 * 60 * 1000);
 setInterval(() => {
   if(zzOn || document.hidden) return; // en Zz aquestes finestres no es veuen
   if(currentView === 'podcasts') loadPrograms(false);
   if(currentView === 'noticies') loadNews(false);
 }, 60 * 1000);
+
+/* ===================== SENSE CONNEXIÓ ===================== */
+// El service worker (sw.js, a la mateixa carpeta) desa l'app perquè, un cop
+// instal·lada, s'obri també sense xarxa. Si no hi és, tot funciona com abans.
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
 </script>
 
 </body>
